@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-cream: var(--cream);
+  --color-parchment: var(--parchment);
+  --color-bark: var(--bark);
+  --color-pine: var(--pine);
+  --color-moss: var(--moss);
+  --color-mist: var(--mist);
+  --color-lantern: var(--lantern);
+  --color-ember: var(--ember);
+  --color-fox: var(--fox);
+  --color-dusk: var(--dusk);
+  --color-snow: var(--snow);
+  --font-sans: var(--font-nunito);
+  --font-display: var(--font-fraunces);
+}
+
+html {
+  background: var(--cream, #f7f0e4);
+  color: var(--bark, #2a2118);
+}
+
+body {
+  min-height: 100%;
+  font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-fraunces), ui-serif, Georgia, serif;
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--lantern) 55%, white);
+  color: var(--bark);
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--lantern);
+  outline-offset: 3px;
+}
