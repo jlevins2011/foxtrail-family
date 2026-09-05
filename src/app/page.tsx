@@ -1,10 +1,19 @@
+import type { Metadata } from "next";
 import { brand } from "@/config/brand";
 import { games } from "@/config/games";
+import { familySku, monetizationCopy } from "@/config/pricing";
 import { ForestBackdrop } from "@/components/ForestBackdrop";
 import { GameCard } from "@/components/GameCard";
 import { PipMark } from "@/components/PipMark";
 import { UnlockCTA } from "@/components/UnlockCTA";
 import { ButtonLink, Section } from "@/components/ui";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: brand.seoTitle,
+  description: brand.description,
+  path: "/",
+});
 
 export default function HomePage() {
   return (
@@ -23,11 +32,11 @@ export default function HomePage() {
             {brand.pitch}
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <ButtonLink href="#games" variant="primary">
+            <ButtonLink href="/games" variant="primary">
               See the three games
             </ButtonLink>
             <ButtonLink href="/unlock" variant="lantern">
-              Unlock all games
+              Start the {familySku.trialDays}-day trial
             </ButtonLink>
           </div>
           <ul className="mt-8 flex flex-wrap gap-2 text-sm font-semibold text-pine">
@@ -54,9 +63,9 @@ export default function HomePage() {
             Three games. One family hub.
           </h2>
           <p className="mt-3 text-base leading-7 text-bark/80">
-            Try a demo from here. Each card opens the live GitHub Pages game —
-            we do not copy those codebases into this repo. Hard demo gates can
-            be added later inside each game.
+            {monetizationCopy.demoAlwaysFree} Each card opens the live GitHub
+            Pages game — we do not copy those codebases into this repo. Full
+            library access is a 14-day trial, then a family subscription.
           </p>
         </div>
         <div className="grid gap-5 md:grid-cols-3">
@@ -76,17 +85,17 @@ export default function HomePage() {
             {
               step: "1",
               title: "Play a demo",
-              body: "Open Camp Compass, Keytrail, or Lumen Isles from the cards above. No account needed to look around.",
+              body: "Open Camp Compass, Keytrail, or Lumen Isles anytime. Demos stay free and do not need an account.",
             },
             {
               step: "2",
-              title: "Parent unlocks the family",
-              body: "A grown-up signs in with email, then chooses monthly or yearly. Stripe Checkout holds the card — not us.",
+              title: "Start a 14-day family trial",
+              body: "A grown-up signs in with email and starts the full library trial. After 14 days, keep it at $9.99/month or $79/year.",
             },
             {
               step: "3",
               title: "Park it on the iPad",
-              body: "After unlock, the library and Add to Home Screen steps live together so camp is one icon away.",
+              body: "During the trial or after you subscribe, Add to Home Screen so camp is one icon — not a forever-free tab.",
             },
           ].map((item) => (
             <div

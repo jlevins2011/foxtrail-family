@@ -61,7 +61,9 @@ export function CheckoutButtons({ signedIn }: { signedIn: boolean }) {
               disabled={busy !== null}
               onClick={() => start(plan.id)}
             >
-              {busy === plan.id ? "Opening Stripe…" : `Choose ${plan.label.toLowerCase()}`}
+              {busy === plan.id
+                ? "Opening Stripe…"
+                : `Start 14-day trial · ${plan.label.toLowerCase()}`}
             </Button>
           </div>
         ))}
@@ -73,8 +75,9 @@ export function CheckoutButtons({ signedIn }: { signedIn: boolean }) {
       ) : null}
       {!signedIn ? (
         <p className="text-sm leading-6 text-mist">
-          A parent email comes first. We will send you to sign-in, then back
-          here for Stripe Checkout.
+          A parent email comes first. We will send you to sign-in, then Stripe
+          Checkout with a 14-day trial. The library is not free after that
+          unless you keep the family key.
         </p>
       ) : null}
     </div>

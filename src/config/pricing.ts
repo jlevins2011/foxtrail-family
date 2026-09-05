@@ -15,7 +15,7 @@ export const plans: Plan[] = [
     id: "monthly",
     label: "Monthly",
     priceLabel: "$9.99",
-    cadence: "per month",
+    cadence: "per month after trial",
     amountCents: 999,
     envPriceId: "STRIPE_PRICE_MONTHLY",
   },
@@ -23,7 +23,7 @@ export const plans: Plan[] = [
     id: "yearly",
     label: "Yearly",
     priceLabel: "$79",
-    cadence: "per year",
+    cadence: "per year after trial",
     amountCents: 7900,
     highlight: "Best for a school year",
     envPriceId: "STRIPE_PRICE_YEARLY",
@@ -33,7 +33,17 @@ export const plans: Plan[] = [
 export const familySku = {
   productName: "Foxtrail Family",
   statementDescriptor: "FOXTRAIL FAMILY",
-  description: "One family subscription unlocking Camp Compass, Keytrail, and Lumen Isles.",
+  description:
+    "14-day full-family trial, then one subscription unlocking Camp Compass, Keytrail, and Lumen Isles.",
+  trialDays: 14,
+} as const;
+
+export const monetizationCopy = {
+  trialHeadline: "14 days with the full family library",
+  trialBody:
+    "Demos stay free. Start a 14-day full-family trial, then continue at $9.99 a month or $79 a year. The library is not free forever.",
+  demoAlwaysFree: "Demos stay free — no account needed.",
+  afterTrial: "After the trial, one family key keeps the library open.",
 } as const;
 
 export function getPlan(id: string): Plan | undefined {

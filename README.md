@@ -16,10 +16,10 @@ Spencer-Game / Homeschool-Game-v1 (CraftWorlds) is intentionally **not** on this
 
 ## What parents see
 
-- **Public home:** pitch plus three game cards. Each card has **Play demo** (the live Pages URL) and a soft note that a hard demo limit can be added later in that game’s repo.
-- **Unlock all games for this family:** Stripe Checkout for one family SKU — **$9.99 / month** or **$79 / year**.
-- **After unlock (signed-in parent):** `/library` with full-library play links plus iPad Add to Home Screen steps.
-- **Parent dashboard:** subscription status and a Stripe billing portal link.
+- **Public home + game landings:** crawlable pages for the hub, Camp Compass, Keytrail, and Lumen Isles. Each card has **Play demo** (the live Pages URL). Demos stay free.
+- **14-day full-family trial, then pay:** Stripe Checkout for one family SKU — **$9.99 / month** or **$79 / year**. The library is not free forever.
+- **After trial or subscribe (signed-in parent):** `/library` with full-library play links plus iPad Add to Home Screen steps.
+- **Parent dashboard:** subscription status, Stripe billing portal, and a **Question banks — coming soon** stub.
 
 v1 is COPPA-aware: **parent email only**. No child accounts on the hub, no ads, no chat, no Apple IAP, no invented analytics.
 
@@ -75,7 +75,7 @@ Use the Stripe **test** dashboard first (`sk_test_…`, `pk_test_…`).
    - `invoice.payment_failed`
 6. Put the webhook signing secret in `STRIPE_WEBHOOK_SECRET` (`whsec_…`).
 
-Checkout path: parent signs in → `/unlock` → monthly or yearly → Stripe Checkout → `/unlock/success` → webhook writes subscription status onto the Clerk user (`publicMetadata`) → `/library` unlocks.
+Checkout path: parent signs in → `/unlock` → monthly or yearly → Stripe Checkout **with a 14-day trial** → `/unlock/success` → webhook writes `trialing` / `active` onto the Clerk user (`publicMetadata`) → `/library` unlocks. After the trial, the chosen price bills unless they cancel in the portal.
 
 Card testing in test mode: `4242 4242 4242 4242`, any future expiry, any CVC.
 
@@ -114,7 +114,37 @@ Edit [`src/config/games.ts`](src/config/games.ts) to change names, blurbs, or UR
 
 Brand strings, mascots, and colors: [`src/config/brand.ts`](src/config/brand.ts). Colors are injected as CSS variables on `<html>`.
 
-Prices shown in the UI: [`src/config/pricing.ts`](src/config/pricing.ts). The charged amount always comes from the Stripe price ids.
+Prices and trial length: [`src/config/pricing.ts`](src/config/pricing.ts). Checkout sends `trial_period_days: 14` on first subscribe. The charged amount always comes from the Stripe price ids.
+
+Enable trials on the Stripe prices (or allow Checkout to set trial days). In the Customer Portal, let parents cancel before the trial ends if they do not want the first charge.
+
+## SEO (public pages)
+
+Indexable landings (also listed in `/sitemap.xml`; `/robots.txt` allows them):
+
+| Page | Title focus |
+| --- | --- |
+| `/` | Foxtrail Family hub |
+| `/games` | Three-game index |
+| `/games/camp-compass` | Camp Compass |
+| `/games/keytrail` | Keytrail |
+| `/games/lumen-isles` | Lumen Isles |
+| `/unlock` | 14-day trial + pricing |
+| `/install` | Add to Home Screen |
+| `/privacy` | Privacy |
+
+Each of those has a unique title, meta description, H1, and Open Graph tags. Pages are server-rendered / static HTML — not an empty client shell. `/dashboard`, `/library`, and `/api` are noindex.
+
+## Question banks (architecture only)
+
+Shared, family-scoped lists (spelling, Latin, math facts, custom) that **any game can opt into later**. Not a database per game.
+
+- Types: [`src/lib/question-banks/types.ts`](src/lib/question-banks/types.ts)
+- Empty store: [`src/lib/question-banks/store.ts`](src/lib/question-banks/store.ts)
+- Parent UI stub: `/dashboard/question-banks`
+- Notes: [`docs/question-banks.md`](docs/question-banks.md)
+
+Do **not** build game adapters in `state-capitals`, `typing-game`, or `HS-Game-v1` from this repo.
 
 ## PWA / iPad home screen
 
@@ -133,7 +163,7 @@ node scripts/generate-icons.mjs
 
 ## Game-repo follow-ups
 
-Hard demo vs full play is **not** enforced by this hub yet. See [docs/game-gating.md](docs/game-gating.md).
+Hard demo vs full play is **not** enforced by this hub yet. Notes live in [docs/game-gating.md](docs/game-gating.md). Implement those later **in the game repos themselves**, not from this project — especially not in `state-capitals` while that repo is being edited elsewhere.
 
 ## Scripts
 

@@ -15,9 +15,9 @@ export default function UnlockSuccessPage() {
         The lantern is lit.
       </h1>
       <p className="mt-4 text-lg leading-8 text-bark/80">
-        Stripe has the payment. The family library unlocks when the webhook
-        lands — usually a few seconds. If the library still looks locked,
-        refresh once or open the parent dashboard.
+        Your 14-day full-family trial starts when the Stripe webhook lands —
+        usually a few seconds. After the trial, the library stays open only
+        while the monthly or yearly family key is active. Demos remain free.
       </p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <ButtonLink href="/library">Go to the library</ButtonLink>

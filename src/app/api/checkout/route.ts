@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPlan, type PlanId } from "@/config/pricing";
+import { familySku, getPlan, type PlanId } from "@/config/pricing";
 import { getViewer } from "@/lib/auth";
 import { getAppUrl, isStripeConfigured } from "@/lib/env";
 import { getPriceId, getStripe } from "@/lib/stripe";
@@ -55,6 +55,9 @@ export async function POST(request: Request) {
       plan: plan.id,
     },
     subscription_data: {
+      ...(billing.status === "none"
+        ? { trial_period_days: familySku.trialDays }
+        : {}),
       metadata: {
         clerkUserId: viewer.userId,
         plan: plan.id,

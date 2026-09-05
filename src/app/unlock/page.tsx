@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 import { brand } from "@/config/brand";
+import { familySku, monetizationCopy } from "@/config/pricing";
 import { CheckoutButtons } from "@/components/CheckoutButtons";
 import { ButtonLink, Section } from "@/components/ui";
 import { getViewer } from "@/lib/auth";
+import { pageMetadata } from "@/lib/seo";
 import { getFamilyBilling, isFamilyUnlocked } from "@/lib/subscription";
 
-export const metadata: Metadata = {
-  title: "Unlock the family",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Start a 14-day family trial",
+  description:
+    "Free demos always. Start a 14-day Foxtrail Family trial, then $9.99/month or $79/year. Parent email only — no Apple IAP.",
+  path: "/unlock",
+});
 
 export const dynamic = "force-dynamic";
 
@@ -22,12 +27,13 @@ export default async function UnlockPage() {
         Family subscription
       </p>
       <h1 className="mt-2 font-display text-4xl text-pine sm:text-5xl">
-        Unlock all games for this family
+        {monetizationCopy.trialHeadline}
       </h1>
       <p className="mt-4 max-w-2xl text-lg leading-8 text-bark/80">
-        One Stripe family SKU. Monthly $9.99 or yearly $79. A parent email is
-        the only account on {brand.name} in v1 — we do not create child logins
-        here, and there is no Apple IAP.
+        {monetizationCopy.trialBody} A parent email is the only account on{" "}
+        {brand.name} in v1 — no child logins, no Apple IAP. After{" "}
+        {familySku.trialDays} days, the library stays open only while the family
+        key is active.
       </p>
 
       {unlocked ? (
@@ -52,10 +58,10 @@ export default async function UnlockPage() {
       <aside className="mt-10 rounded-3xl bg-parchment/70 p-6 text-sm leading-6 text-bark/80">
         <p className="font-semibold text-pine">What checkout does</p>
         <p className="mt-2">
-          Stripe Checkout opens in test mode when you use test keys. After
-          payment, a webhook marks this parent as subscribed. The games
-          themselves still live on GitHub Pages; hard demo vs full play is a
-          follow-up in each game repo.
+          Stripe Checkout starts a {familySku.trialDays}-day trial, then the
+          monthly or yearly family SKU. A webhook marks this parent as
+          trialing or subscribed. Demos stay free. The games still live on
+          GitHub Pages.
         </p>
       </aside>
     </Section>

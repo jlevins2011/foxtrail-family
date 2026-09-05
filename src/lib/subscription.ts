@@ -42,7 +42,7 @@ export function statusLabel(status: SubscriptionStatus) {
     case "active":
       return "Active";
     case "trialing":
-      return "Trialing";
+      return "14-day trial";
     case "past_due":
       return "Past due";
     case "canceled":

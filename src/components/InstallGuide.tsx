@@ -1,4 +1,10 @@
-export function InstallGuide({ compact = false }: { compact?: boolean }) {
+export function InstallGuide({
+  compact = false,
+  asPageTitle = false,
+}: {
+  compact?: boolean;
+  asPageTitle?: boolean;
+}) {
   const steps = [
     {
       title: "Open this hub in Safari",
@@ -14,7 +20,7 @@ export function InstallGuide({ compact = false }: { compact?: boolean }) {
     },
     {
       title: "Open from the icon",
-      body: "The hub opens as its own app. After the family is unlocked, the library is one tap away.",
+      body: "The hub opens as its own app. During the trial or after you subscribe, the library is one tap away.",
     },
   ];
 
@@ -23,9 +29,15 @@ export function InstallGuide({ compact = false }: { compact?: boolean }) {
       <p className="text-xs font-bold uppercase tracking-[0.16em] text-mist">
         iPad home screen
       </p>
-      <h2 className="mt-2 font-display text-3xl text-pine">
-        Add {compact ? "to Home Screen" : "Foxtrail to the family iPad"}
-      </h2>
+      {asPageTitle ? (
+        <h1 className="mt-2 font-display text-3xl text-pine">
+          Add Foxtrail to the family iPad
+        </h1>
+      ) : (
+        <h2 className="mt-2 font-display text-3xl text-pine">
+          Add {compact ? "to Home Screen" : "Foxtrail to the family iPad"}
+        </h2>
+      )}
       <p className="mt-3 max-w-2xl text-base leading-7 text-bark/80">
         This site is a small PWA: it has a web app manifest and a light service
         worker so Safari can offer Add to Home Screen. Kids get a camp icon.

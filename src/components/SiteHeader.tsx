@@ -20,7 +20,7 @@ export function SiteHeader() {
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
           <Link
-            href="/#games"
+            href="/games"
             className="hidden min-h-11 items-center rounded-full px-3 text-sm font-semibold text-pine hover:bg-parchment/80 sm:inline-flex"
           >
             Games

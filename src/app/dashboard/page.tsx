@@ -12,6 +12,7 @@ import {
 
 export const metadata: Metadata = {
   title: "Parent dashboard",
+  robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";
@@ -104,9 +105,12 @@ export default async function DashboardPage() {
           <ButtonLink href="/library">Open the family library</ButtonLink>
         ) : (
           <ButtonLink href="/unlock" variant="lantern">
-            Unlock all games
+            Start the 14-day trial
           </ButtonLink>
         )}
+        <ButtonLink href="/dashboard/question-banks" variant="secondary">
+          Question banks
+        </ButtonLink>
         <PortalButton enabled={Boolean(billing.stripeCustomerId)} />
       </div>
     </Section>

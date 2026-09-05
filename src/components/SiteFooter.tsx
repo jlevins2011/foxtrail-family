@@ -13,6 +13,9 @@ export function SiteFooter() {
           </p>
         </div>
         <div className="flex flex-col gap-2 text-sm font-semibold">
+          <Link className="hover:underline" href="/games">
+            Games
+          </Link>
           <Link className="hover:underline" href="/privacy">
             Privacy
           </Link>

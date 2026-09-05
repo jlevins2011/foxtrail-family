@@ -1,4 +1,6 @@
+import Link from "next/link";
 import type { Game } from "@/config/games";
+import { hubPathForGame } from "@/config/games";
 import { ButtonLink } from "@/components/ui";
 
 const accentBar: Record<Game["accent"], string> = {
@@ -25,7 +27,11 @@ export function GameCard({
           {game.subject}
         </p>
         <div>
-          <h3 className="font-display text-2xl text-pine">{game.name}</h3>
+          <h3 className="font-display text-2xl text-pine">
+            <Link href={hubPathForGame(game)} className="hover:underline">
+              {game.name}
+            </Link>
+          </h3>
           <p className="mt-1 text-sm text-ember">
             With {game.mascot}
           </p>
@@ -36,6 +42,11 @@ export function GameCard({
           <ButtonLink href={href} variant="primary" external>
             {label}
           </ButtonLink>
+          {mode === "demo" ? (
+            <ButtonLink href={hubPathForGame(game)} variant="secondary">
+              About {game.shortName}
+            </ButtonLink>
+          ) : null}
           <p className="text-xs leading-5 text-mist">{game.demoNote}</p>
         </div>
       </div>

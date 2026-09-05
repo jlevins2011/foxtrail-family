@@ -11,6 +11,7 @@ import { getFamilyBilling, isFamilyUnlocked } from "@/lib/subscription";
 
 export const metadata: Metadata = {
   title: "Family library",
+  robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";
@@ -24,8 +25,9 @@ export default async function LibraryPage() {
         <Section className="max-w-3xl">
           <h1 className="font-display text-4xl text-pine">Family library</h1>
           <p className="mt-4 text-lg leading-8 text-bark/80">
-            After a parent signs in and unlocks the family, this page holds the
-            full library links plus Add to Home Screen steps.
+            After a parent starts the 14-day trial or subscribes, this page
+            holds the full library links plus Add to Home Screen steps. Demos
+            on the public game pages stay free.
           </p>
           <div className="mt-8">
             <UnlockCTA compact />
@@ -44,8 +46,9 @@ export default async function LibraryPage() {
       <Section className="max-w-3xl">
         <h1 className="font-display text-4xl text-pine">Almost on the trail</h1>
         <p className="mt-4 text-lg leading-8 text-bark/80">
-          Signed in as {viewer.email ?? "a parent"}. Unlock the family
-          subscription to open the full library view.
+          Signed in as {viewer.email ?? "a parent"}. Start the 14-day trial
+          (then $9.99/month or $79/year) to open the full library. Demos stay
+          free without a key.
         </p>
         <div className="mt-8">
           <UnlockCTA compact />
@@ -63,8 +66,9 @@ export default async function LibraryPage() {
         Your camp library
       </h1>
       <p className="mt-4 max-w-2xl text-lg leading-8 text-bark/80">
-        These are the same live games as the public demos today. When each game
-        repo adds a hard gate, this page is where the family play links stay.
+        Trial or subscription is active. Public demos remain free for anyone;
+        this library is the family key view. When each game adds a hard gate,
+        these are the full-play links.
       </p>
       <div className="mt-4">
         <ButtonLink href="/dashboard" variant="secondary">

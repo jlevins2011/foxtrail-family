@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import { brand } from "@/config/brand";
 import { Section } from "@/components/ui";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Privacy",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Privacy — parent email only",
+  description:
+    "Foxtrail Family collects a parent email only. No ads, no chat, no child accounts on the hub, no invented analytics.",
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (

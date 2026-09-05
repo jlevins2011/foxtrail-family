@@ -1,5 +1,5 @@
 import { brand } from "@/config/brand";
-import { plans } from "@/config/pricing";
+import { familySku, monetizationCopy, plans } from "@/config/pricing";
 import { ButtonLink } from "@/components/ui";
 
 export function UnlockCTA({ compact = false }: { compact?: boolean }) {
@@ -9,13 +9,12 @@ export function UnlockCTA({ compact = false }: { compact?: boolean }) {
         Family key
       </p>
       <h2 className="mt-2 font-display text-3xl text-pine sm:text-4xl">
-        Unlock all games for this family
+        {monetizationCopy.trialHeadline}
       </h2>
       {!compact && (
         <p className="mt-3 max-w-2xl text-base leading-7 text-bark/80">
-          One parent email. One subscription. Camp Compass, Keytrail, and Lumen
-          Isles stay together under {brand.name}. After unlock, add the hub to
-          an iPad home screen so kids open camp — not a browser tab.
+          {monetizationCopy.trialBody} One parent email. Camp Compass, Keytrail,
+          and Lumen Isles stay together under {brand.name}.
         </p>
       )}
       <div className="mt-5 flex flex-wrap gap-3 text-sm font-semibold text-pine">
@@ -31,7 +30,7 @@ export function UnlockCTA({ compact = false }: { compact?: boolean }) {
       </div>
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
         <ButtonLink href="/unlock" variant="lantern">
-          Unlock all games
+          Start the {familySku.trialDays}-day trial
         </ButtonLink>
         <ButtonLink href="/sign-in" variant="secondary">
           Parent sign in

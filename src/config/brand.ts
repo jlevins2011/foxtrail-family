@@ -9,9 +9,10 @@ export const brand = {
   legalName: "Foxtrail Family",
   tagline: "Camp games for curious kids. One family key for the trail.",
   pitch:
-    "A quiet family hub for Camp Compass, Keytrail, and Lumen Isles — educational games you can try, then unlock together. No ads. No chat. Parent email only.",
+    "A quiet family hub for Camp Compass, Keytrail, and Lumen Isles. Play the free demos anytime. A parent can start a 14-day full-family trial, then keep the library with one key. No ads. No chat. Parent email only.",
   description:
-    "Foxtrail Family is a shared home for three kid-friendly learning games. A parent signs in with email, unlocks the family library, and can add the hub to an iPad home screen.",
+    "Foxtrail Family is a shared home for Camp Compass, Keytrail, and Lumen Isles. Demos are always free. A parent email unlocks a 14-day family trial, then $9.99/month or $79/year.",
+  seoTitle: "Foxtrail Family — Camp games for curious kids",
   mascots: {
     primary: {
       name: "Pip",

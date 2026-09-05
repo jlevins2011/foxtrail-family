@@ -21,11 +21,23 @@ const fraunces = Fraunces({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
   title: {
-    default: brand.name,
+    default: brand.seoTitle,
     template: `%s · ${brand.shortName}`,
   },
   description: brand.description,
   applicationName: brand.shortName,
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    siteName: brand.name,
+    title: brand.seoTitle,
+    description: brand.description,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: brand.seoTitle,
+    description: brand.description,
+  },
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
