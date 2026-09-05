@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Foxtrail Family">
+  <circle cx="32" cy="32" r="30" fill="#1F3A2E"/>
+  <path d="M18 28c0-10 6-16 14-16s14 6 14 16c0 11-6 20-14 20S18 39 18 28Z" fill="#D46A2C"/>
+  <path d="M20 20 14 10l12 6" fill="#D46A2C"/>
+  <path d="M44 20 50 10 38 16" fill="#D46A2C"/>
+  <circle cx="26" cy="28" r="2.2" fill="#2A2118"/>
+  <circle cx="38" cy="28" r="2.2" fill="#2A2118"/>
+  <path d="M32 31c2 2 4 3 6 2" fill="none" stroke="#2A2118" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M28 38h8l-4 5z" fill="#C45C26"/>
+  <rect x="40" y="40" width="10" height="12" rx="2" fill="#E8A23A"/>
+  <path d="M42 40h6l-1-4h-4z" fill="#C45C26"/>
+  <circle cx="45" cy="46" r="2.4" fill="#FFF8EE"/>
+</svg>
