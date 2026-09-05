@@ -15,7 +15,9 @@ export type Game = {
 };
 
 /**
- * Hub catalog only. Do not copy game source into this repo — link out to live Pages.
+ * Hub catalog only. Cards must link to live GitHub Pages URLs (`playUrl`).
+ * Do not clone, open, edit, or PR against the game repos from this project —
+ * especially state-capitals (Camp Compass), which the owner works on separately.
  * Do not add Spencer-Game / Homeschool-Game-v1 (CraftWorlds) here.
  */
 export const games: Game[] = [

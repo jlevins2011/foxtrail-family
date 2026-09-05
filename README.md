@@ -4,13 +4,13 @@ A family hub for three kid educational games — **Camp Compass**, **Keytrail**,
 
 Working name is **Foxtrail Family** (Pip the lantern fox appears in Camp Compass and Keytrail; Lumen is the sibling). Rename the product from a single file: [`src/config/brand.ts`](src/config/brand.ts). Game URLs live in [`src/config/games.ts`](src/config/games.ts).
 
-This repository does **not** fork or copy those games. The hub links out to their live GitHub Pages sites.
+This repository does **not** fork, clone, or edit those games. The hub **only** links out to their live GitHub Pages sites. Do not open PRs against `state-capitals`, `typing-game`, or `HS-Game-v1` from this project.
 
-| Game | Subject | Live | Repo |
-| --- | --- | --- | --- |
-| Camp Compass | US geography | https://jlevins2011.github.io/state-capitals/ | https://github.com/jlevins2011/state-capitals |
-| Keytrail | Typing | https://jlevins2011.github.io/typing-game/ | https://github.com/jlevins2011/typing-game |
-| Lumen Isles | 3D island adventure | https://jlevins2011.github.io/HS-Game-v1/ | https://github.com/jlevins2011/HS-Game-v1 |
+| Game | Subject | Play (hub links here only) |
+| --- | --- | --- |
+| Camp Compass | US geography | https://jlevins2011.github.io/state-capitals/ |
+| Keytrail | Typing | https://jlevins2011.github.io/typing-game/ |
+| Lumen Isles | 3D island adventure | https://jlevins2011.github.io/HS-Game-v1/ |
 
 Spencer-Game / Homeschool-Game-v1 (CraftWorlds) is intentionally **not** on this hub.
 
