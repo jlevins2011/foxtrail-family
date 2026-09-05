@@ -9,7 +9,7 @@ export function SiteFooter() {
           <p className="font-display text-xl">{brand.name}</p>
           <p className="mt-2 text-sm leading-6 text-parchment/90">
             A parent-held family hub. No ads, no chat, no child emails on this
-            site. Rename the brand in <code>src/config/brand.ts</code>.
+            site.
           </p>
         </div>
         <div className="flex flex-col gap-2 text-sm font-semibold">

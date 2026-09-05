@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   title: "Family library",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function LibraryPage() {
   const viewer = await getViewer();
 

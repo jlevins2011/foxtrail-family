@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   title: "Parent dashboard",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const viewer = await getViewer();
 

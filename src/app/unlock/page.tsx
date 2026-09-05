@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   title: "Unlock the family",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function UnlockPage() {
   const viewer = await getViewer();
   const billing = viewer ? await getFamilyBilling(viewer.userId) : null;
