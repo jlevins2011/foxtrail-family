@@ -24,7 +24,8 @@ const child = spawn(
       FOXTRAIL_DATABASE_PATH: path,
       FOXTRAIL_DIST_DIR: ".next-integration",
       FOXTRAIL_TEST_MODE: "true",
-      NEXT_PUBLIC_APP_URL: origin,
+      // Exercise dev-server localhost normalization without a configured URL.
+      NEXT_PUBLIC_APP_URL: undefined,
       NEXT_TELEMETRY_DISABLED: "1",
     },
     stdio: ["ignore", "pipe", "pipe"],

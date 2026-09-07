@@ -63,6 +63,15 @@ export async function requireOwner() {
   return v;
 }
 export function sameOrigin(request: Request) {
+  // Next's development server can normalize request.url to localhost even
+  // when the browser used 127.0.0.1. Require the browser's exact Host and port.
+  if (LOCAL_TEST()) {
+    const host = request.headers.get("host");
+    if (host && /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(host)) {
+      const localOrigin = `${new URL(request.url).protocol}//${host}`;
+      if (request.headers.get("origin") === localOrigin) return;
+    }
+  }
   const expected =
     process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin;
   if (request.headers.get("origin") !== new URL(expected).origin)
