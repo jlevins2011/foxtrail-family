@@ -20,7 +20,9 @@ export function pageMetadata({
   index?: boolean;
 }): Metadata {
   const url = absoluteUrl(path);
-  const ogImage = path === "/" ? "/opengraph-image" : `${path}/opengraph-image`;
+  const ogImage = path.startsWith("/games/")
+    ? `${path}/opengraph-image`
+    : "/opengraph-image";
   return {
     title,
     description,

@@ -1,130 +1,99 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { isClerkConfigured, isStripeWebhookConfigured } from "@/lib/env";
 import {
   getStripe,
   getSubscriptionPeriodEnd,
   inferPlanFromSubscription,
   mapStripeStatus,
 } from "@/lib/stripe";
-import { findClerkUserId, saveFamilyBilling } from "@/lib/subscription";
-
+import { family, saveFamily } from "@/lib/platform/model";
+import { atomic, database, log } from "@/lib/platform/db";
 export const runtime = "nodejs";
-
-async function applySubscription(
-  subscription: Stripe.Subscription,
-  fallbackUserId?: string | null,
-  fallbackEmail?: string | null,
-) {
-  const clerkUserId = await findClerkUserId({
-    userId:
-      fallbackUserId ??
-      (typeof subscription.metadata.clerkUserId === "string"
-        ? subscription.metadata.clerkUserId
-        : null),
-    email: fallbackEmail,
-  });
-
-  if (!clerkUserId) {
-    console.warn("Stripe webhook: no Clerk user for subscription", subscription.id);
-    return;
-  }
-
-  const customerId =
-    typeof subscription.customer === "string"
-      ? subscription.customer
-      : subscription.customer.id;
-  const periodEnd = getSubscriptionPeriodEnd(subscription);
-
-  await saveFamilyBilling(clerkUserId, {
-    status: mapStripeStatus(subscription.status),
-    plan: inferPlanFromSubscription(subscription),
-    stripeCustomerId: customerId,
-    stripeSubscriptionId: subscription.id,
-    currentPeriodEnd: periodEnd
-      ? new Date(periodEnd * 1000).toISOString()
-      : null,
-  });
-}
-
-export async function POST(request: Request) {
-  if (!isStripeWebhookConfigured() || !isClerkConfigured()) {
+export async function POST(req: Request) {
+  if (!process.env.STRIPE_WEBHOOK_SECRET || !process.env.STRIPE_SECRET_KEY)
     return NextResponse.json(
-      { error: "Webhook secrets or Clerk are not configured." },
+      { error: "Webhook not configured" },
       { status: 503 },
     );
-  }
-
-  const signature = request.headers.get("stripe-signature");
-  if (!signature) {
-    return NextResponse.json({ error: "Missing stripe-signature." }, { status: 400 });
-  }
-
-  const body = await request.text();
   const stripe = getStripe();
-
   let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET as string,
+      await req.text(),
+      req.headers.get("stripe-signature") ?? "",
+      process.env.STRIPE_WEBHOOK_SECRET,
     );
   } catch {
-    return NextResponse.json({ error: "Invalid signature." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
-
   try {
-    switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session;
-        if (session.mode !== "subscription" || !session.subscription) {
-          break;
-        }
-        const subscriptionId =
-          typeof session.subscription === "string"
-            ? session.subscription
-            : session.subscription.id;
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-        await applySubscription(
-          subscription,
-          session.client_reference_id ?? session.metadata?.clerkUserId,
-          session.customer_details?.email ?? session.customer_email,
-        );
-        break;
+    const object = event.data.object;
+    let subId: string | undefined;
+    let checkout = false;
+    if (event.type === "checkout.session.completed") {
+      const s = object as Stripe.Checkout.Session;
+      if (s.mode === "subscription") {
+        subId =
+          typeof s.subscription === "string"
+            ? s.subscription
+            : s.subscription?.id;
+        checkout = true;
       }
-      case "customer.subscription.created":
-      case "customer.subscription.updated":
-      case "customer.subscription.deleted": {
-        await applySubscription(event.data.object as Stripe.Subscription);
-        break;
-      }
-      case "invoice.paid":
-      case "invoice.payment_failed": {
-        const invoice = event.data.object as Stripe.Invoice;
-        const subscriptionRef = (
-          invoice as Stripe.Invoice & {
-            subscription?: string | Stripe.Subscription | null;
-          }
-        ).subscription;
-        if (!subscriptionRef) break;
-        const subscriptionId =
-          typeof subscriptionRef === "string" ? subscriptionRef : subscriptionRef.id;
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-        await applySubscription(
-          subscription,
-          null,
-          invoice.customer_email,
-        );
-        break;
-      }
-      default:
-        break;
+    } else if (event.type.startsWith("customer.subscription."))
+      subId = (object as Stripe.Subscription).id;
+    else if (
+      event.type === "invoice.paid" ||
+      event.type === "invoice.payment_failed"
+    ) {
+      const i = object as Stripe.Invoice;
+      const ref = i.parent?.subscription_details?.subscription;
+      subId = typeof ref === "string" ? ref : ref?.id;
     }
-  } catch (error) {
-    console.error("Stripe webhook handler failed", error);
-    return NextResponse.json({ error: "Handler failed." }, { status: 500 });
+    if (!subId) return NextResponse.json({ received: true });
+    // Retrieve current Stripe state so delayed update events cannot restore old access.
+    const sub = await stripe.subscriptions.retrieve(subId),
+      owner = sub.metadata.familyId;
+    if (!owner) return NextResponse.json({ received: true });
+    const plan = inferPlanFromSubscription(sub);
+    if (!plan)
+      return NextResponse.json(
+        { error: "Unrecognized price" },
+        { status: 400 },
+      );
+    atomic(() => {
+      if (
+        database()
+          .prepare("SELECT id FROM webhook_events WHERE id=?")
+          .get(event.id)
+      )
+        return;
+      const f = family(owner);
+      if (
+        f.billing?.subscription &&
+        f.billing.subscription !== sub.id &&
+        !checkout
+      )
+        return;
+      f.billing = {
+        status: mapStripeStatus(sub.status),
+        customer:
+          typeof sub.customer === "string" ? sub.customer : sub.customer.id,
+        subscription: sub.id,
+        periodEnd: (getSubscriptionPeriodEnd(sub) ?? 0) * 1000,
+        plan,
+      };
+      f.trialUsed = true;
+      saveFamily(f);
+      database()
+        .prepare("INSERT INTO webhook_events VALUES(?,?)")
+        .run(event.id, Date.now());
+      log(owner, "billing.sync", f.billing.status);
+    });
+    return NextResponse.json({ received: true });
+  } catch {
+    return NextResponse.json(
+      { error: "Could not synchronize subscription" },
+      { status: 500 },
+    );
   }
-
-  return NextResponse.json({ received: true });
 }

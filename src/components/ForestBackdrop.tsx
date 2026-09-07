@@ -10,17 +10,21 @@ export function ForestBackdrop() {
         viewBox="0 0 1400 220"
         fill="none"
       >
-        <path
-          d="M0 220 80 140 140 220Z"
-          fill="currentColor"
-        />
+        <path d="M0 220 80 140 140 220Z" fill="currentColor" />
         <path d="M110 220 200 90 280 220Z" fill="currentColor" />
         <path d="M250 220 340 120 410 220Z" fill="currentColor" />
         <path d="M520 220 630 70 740 220Z" fill="currentColor" />
         <path d="M700 220 790 110 870 220Z" fill="currentColor" />
         <path d="M980 220 1080 80 1180 220Z" fill="currentColor" />
         <path d="M1140 220 1240 130 1320 220Z" fill="currentColor" />
-        <ellipse cx="700" cy="210" rx="700" ry="28" fill="var(--moss)" opacity="0.18" />
+        <ellipse
+          cx="700"
+          cy="210"
+          rx="700"
+          ry="28"
+          fill="var(--moss)"
+          opacity="0.18"
+        />
       </svg>
     </div>
   );

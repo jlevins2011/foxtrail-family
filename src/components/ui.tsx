@@ -3,8 +3,7 @@ import Link from "next/link";
 type Variant = "primary" | "secondary" | "ghost" | "lantern";
 
 const variantClass: Record<Variant, string> = {
-  primary:
-    "bg-pine text-snow shadow-sm hover:bg-moss",
+  primary: "bg-pine text-snow shadow-sm hover:bg-moss",
   secondary:
     "border border-pine/20 bg-snow/80 text-pine hover:border-pine/40 hover:bg-snow",
   ghost: "text-pine hover:bg-parchment/70",
@@ -54,7 +53,10 @@ export function Button({
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
   return (
-    <button className={`${baseClass} ${variantClass[variant]} ${className}`} {...props}>
+    <button
+      className={`${baseClass} ${variantClass[variant]} ${className}`}
+      {...props}
+    >
       {children}
     </button>
   );

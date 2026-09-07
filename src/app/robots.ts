@@ -9,6 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: ["/", "/games", "/games/", "/unlock", "/install", "/privacy"],
         disallow: [
           "/dashboard",
+          "/play",
           "/library",
           "/api/",
           "/sign-in",

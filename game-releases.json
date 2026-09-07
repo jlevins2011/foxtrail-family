@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "games": [
+    {
+      "id": "sumtrail",
+      "repository": "jlevins2011/sumtrail",
+      "commit": "7175d95cc6df03a449c0db85f9534f47c7f995a5",
+      "packagedAt": "2026-09-07T14:45:25.832Z"
+    },
+    {
+      "id": "keytrail",
+      "repository": "jlevins2011/typing-game",
+      "commit": "e646b4a07a2024a5280ac1a00e56e74e5afc56f1",
+      "packagedAt": "2026-09-07T14:45:26.431Z"
+    },
+    {
+      "id": "camp-compass",
+      "repository": "jlevins2011/state-capitals",
+      "commit": "d7be0dfeef97d2590aff9f864044a4e46ed6faf2",
+      "packagedAt": "2026-09-07T14:45:26.976Z"
+    },
+    {
+      "id": "lumen-isles",
+      "repository": "jlevins2011/HS-Game-v1",
+      "commit": "e1d462cc03121a5c9c7d7ba6409f284bd078ad3c",
+      "packagedAt": "2026-09-07T14:45:27.014Z"
+    }
+  ]
+}

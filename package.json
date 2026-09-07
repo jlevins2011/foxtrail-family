@@ -1,17 +1,22 @@
 {
   "name": "foxtrail-family",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Family hub and paywall for Camp Compass, Keytrail, and Lumen Isles.",
   "engines": {
-    "node": ">=20.9"
+    "node": ">=24.13 <25"
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "dev:test": "FOXTRAIL_TEST_MODE=true next dev --hostname 127.0.0.1",
+    "games:package": "node scripts/package-games.mjs",
+    "test": "node tests/platform.mjs",
+    "test:bridge": "node --test tests/bridge.test.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.1",
@@ -22,7 +27,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^24.13.3",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

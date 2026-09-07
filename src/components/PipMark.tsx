@@ -37,18 +37,8 @@ export function PipMark({
       />
       <path d="M28 38h8l-4 5z" fill="var(--ember)" />
       <g transform="translate(40 34)">
-        <rect
-          x="0"
-          y="6"
-          width="10"
-          height="12"
-          rx="2"
-          fill="var(--lantern)"
-        />
-        <path
-          d="M2 6h6l-1-4h-4z"
-          fill="var(--ember)"
-        />
+        <rect x="0" y="6" width="10" height="12" rx="2" fill="var(--lantern)" />
+        <path d="M2 6h6l-1-4h-4z" fill="var(--ember)" />
         <circle cx="5" cy="12" r="2.4" fill="var(--snow)" />
       </g>
     </svg>

@@ -1,0 +1,8 @@
+node_modules
+.next*
+.git
+.game-builds
+data
+.env*
+!.env.example
+artifacts

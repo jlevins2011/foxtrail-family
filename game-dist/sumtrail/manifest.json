@@ -1,0 +1,18 @@
+{
+  "name": "Sumtrail",
+  "short_name": "Sumtrail",
+  "description": "Math facts fluency adventure with Pip the lantern fox.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#12231c",
+  "theme_color": "#12231c",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

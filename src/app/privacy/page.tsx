@@ -1,62 +1,65 @@
-import type { Metadata } from "next";
 import { brand } from "@/config/brand";
-import { Section } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
-
-export const metadata: Metadata = pageMetadata({
-  title: "Privacy — parent email only",
+export const metadata = pageMetadata({
+  title: "Family privacy",
   description:
-    "Foxtrail Family collects a parent email only. No ads, no chat, no child accounts on the hub, no invented analytics.",
+    "How family profiles, question banks, learning records, and saved games are handled.",
   path: "/privacy",
 });
-
-export default function PrivacyPage() {
+export default function Page() {
   return (
-    <Section className="max-w-3xl">
-      <h1 className="font-display text-4xl text-pine">Privacy</h1>
-      <p className="mt-4 text-lg leading-8 text-bark/80">
-        {brand.name} is built for families, with a COPPA-aware v1: the hub
-        collects a parent email only. We do not run ads or chat, and we do not
-        invent extra analytics on this site.
-      </p>
-      <div className="mt-8 space-y-6 text-base leading-7 text-bark/85">
-        <section>
-          <h2 className="font-display text-2xl text-pine">What we collect</h2>
-          <ul className="mt-2 list-disc space-y-2 pl-5">
-            <li>A parent email address, via Clerk magic-link authentication.</li>
-            <li>
-              Subscription status and Stripe customer identifiers so we know
-              this family is unlocked.
-            </li>
-            <li>Payment details stay with Stripe. We never see full card numbers.</li>
-          </ul>
-        </section>
-        <section>
-          <h2 className="font-display text-2xl text-pine">What we do not collect</h2>
-          <ul className="mt-2 list-disc space-y-2 pl-5">
-            <li>Child emails, child names, or child accounts on this hub.</li>
-            <li>Chat messages — there is no chat.</li>
-            <li>Advertising identifiers. There are no ads.</li>
-            <li>Homegrown analytics dashboards or invented usage charts.</li>
-          </ul>
-        </section>
-        <section>
-          <h2 className="font-display text-2xl text-pine">The games</h2>
-          <p className="mt-2">
-            Camp Compass, Keytrail, and Lumen Isles open on GitHub Pages. Those
-            games may have their own parent PIN reports. This hub does not copy
-            their player data. Harder demo vs full gates belong in those repos.
-          </p>
-        </section>
-        <section>
-          <h2 className="font-display text-2xl text-pine">Contact</h2>
-          <p className="mt-2">
-            {brand.supportEmail
-              ? `Parents can reach us at ${brand.supportEmail}.`
-              : "Set NEXT_PUBLIC_SUPPORT_EMAIL or brand.supportEmail when you are ready to publish a contact address."}
-          </p>
-        </section>
-      </div>
-    </Section>
+    <div className="workspace" style={{ maxWidth: 850 }}>
+      <h1>Family privacy</h1>
+      <section className="panel">
+        <h2>Information used to run your family account</h2>
+        <p>
+          We store the parent account identifier, child first names or
+          nicknames, avatars, grade levels, learning assignments, hashed PINs,
+          question banks, learning records, rewards, and saved game progress.
+          The sign-in service manages your parent email and account
+          authentication. The payment service manages payment details; this
+          website stores membership status and customer references, not full
+          card numbers.
+        </p>
+      </section>
+      <section className="panel">
+        <h2>Children do not need email accounts.</h2>
+        <p>
+          A parent creates and manages child profiles. There are no ads, social
+          chat, or advertising trackers in the family website. Operational logs
+          record account administration and agent actions. Hosting and sign-in
+          providers may process connection information to operate their
+          services.
+        </p>
+      </section>
+      <section className="panel">
+        <h2>Sharing stays under your control.</h2>
+        <p>
+          Sharing codes let another signed-in parent import a copy of your
+          question bank. They never include child profiles or progress. Do not
+          put personal information into shared questions. Turning sharing off
+          stops new imports; it does not remove copies already imported by
+          another family.
+        </p>
+      </section>
+      <section className="panel">
+        <h2>Export and deletion</h2>
+        <p>
+          Export your family data from Membership & privacy. Deleting a child
+          removes their profile, game saves, learning records, and rewards.
+          Uploaded banks remain until you delete them separately. Ask the site
+          operator about deleting the parent account or retained billing
+          records.
+        </p>
+      </section>
+      <section className="panel">
+        <h2>Contact</h2>
+        <p>
+          {brand.supportEmail
+            ? `For privacy questions, contact ${brand.supportEmail}.`
+            : "This testing release is not open to public registration. A parent support contact will be published before public launch."}
+        </p>
+      </section>
+    </div>
   );
 }

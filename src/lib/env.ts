@@ -22,7 +22,10 @@ export function isStripeWebhookConfigured() {
 }
 
 export function isDevUnlockEnabled() {
-  return process.env.FOXTRAIL_DEV_UNLOCK === "true";
+  return (
+    process.env.NODE_ENV !== "production" &&
+    process.env.FOXTRAIL_DEV_UNLOCK === "true"
+  );
 }
 
 export function getAppUrl() {

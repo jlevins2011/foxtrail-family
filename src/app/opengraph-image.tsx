@@ -24,10 +24,24 @@ export default function OpenGraphImage() {
         <div style={{ fontSize: 28, color: theme.ember, fontWeight: 700 }}>
           {brand.shortName}
         </div>
-        <div style={{ fontSize: 72, fontWeight: 700, lineHeight: 1.05, marginTop: 16 }}>
+        <div
+          style={{
+            fontSize: 72,
+            fontWeight: 700,
+            lineHeight: 1.05,
+            marginTop: 16,
+          }}
+        >
           Camp games for curious kids
         </div>
-        <div style={{ fontSize: 32, marginTop: 28, color: theme.moss, maxWidth: 900 }}>
+        <div
+          style={{
+            fontSize: 32,
+            marginTop: 28,
+            color: theme.moss,
+            maxWidth: 900,
+          }}
+        >
           Free demos. 14-day family trial. Then one key for Camp Compass,
           Keytrail, and Lumen Isles.
         </div>

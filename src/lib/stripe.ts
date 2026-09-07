@@ -55,13 +55,7 @@ export function getSubscriptionPeriodEnd(subscription: Stripe.Subscription) {
 
 export function mapStripeStatus(
   status: Stripe.Subscription.Status,
-):
-  | "active"
-  | "trialing"
-  | "past_due"
-  | "canceled"
-  | "unpaid"
-  | "incomplete" {
+): "active" | "trialing" | "past_due" | "canceled" | "unpaid" | "incomplete" {
   switch (status) {
     case "active":
       return "active";

@@ -39,5 +39,9 @@ export const questionBankKinds: {
   { kind: "spelling", label: "Spelling", example: "weekly word lists" },
   { kind: "latin", label: "Latin", example: "roots, endings, phrases" },
   { kind: "math-facts", label: "Math facts", example: "times tables, sums" },
-  { kind: "custom", label: "Custom", example: "whatever this family is learning" },
+  {
+    kind: "custom",
+    label: "Custom",
+    example: "whatever this family is learning",
+  },
 ];

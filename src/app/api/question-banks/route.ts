@@ -1,25 +1,18 @@
 import { NextResponse } from "next/server";
-import { getViewer } from "@/lib/auth";
-import { listQuestionBanks, questionBanksComingSoon } from "@/lib/question-banks/store";
-
+import { requireParent } from "@/lib/platform/security";
+import { allBanks, Problem } from "@/lib/platform/model";
 export const runtime = "nodejs";
-
 export async function GET() {
-  const viewer = await getViewer();
-  const banks = viewer ? await listQuestionBanks(viewer.userId) : [];
-  return NextResponse.json({
-    ...questionBanksComingSoon(),
-    familyId: viewer?.userId ?? null,
-    banks,
-  });
-}
-
-export async function POST() {
-  return NextResponse.json(
-    {
-      error: "Question bank create is not implemented yet. Schema only.",
-      ...questionBanksComingSoon(),
-    },
-    { status: 501 },
-  );
+  try {
+    const v = await requireParent();
+    return NextResponse.json(
+      { banks: allBanks(v.userId) },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Request failed" },
+      { status: e instanceof Problem ? e.status : 500 },
+    );
+  }
 }

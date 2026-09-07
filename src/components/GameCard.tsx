@@ -32,9 +32,7 @@ export function GameCard({
               {game.name}
             </Link>
           </h3>
-          <p className="mt-1 text-sm text-ember">
-            With {game.mascot}
-          </p>
+          <p className="mt-1 text-sm text-ember">With {game.mascot}</p>
         </div>
         <p className="text-base leading-7 text-bark/85">{game.blurb}</p>
         <p className="text-sm leading-6 text-mist">{game.summary}</p>

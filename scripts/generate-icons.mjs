@@ -97,12 +97,36 @@ function paint(size) {
   const c = size / 2;
   fillCircle(pixels, size, c, c, size * 0.48, PINE);
   fillEllipse(pixels, size, c, size * 0.5, size * 0.28, size * 0.32, FOX);
-  fillEllipse(pixels, size, size * 0.3, size * 0.28, size * 0.1, size * 0.16, FOX);
-  fillEllipse(pixels, size, size * 0.7, size * 0.28, size * 0.1, size * 0.16, FOX);
+  fillEllipse(
+    pixels,
+    size,
+    size * 0.3,
+    size * 0.28,
+    size * 0.1,
+    size * 0.16,
+    FOX,
+  );
+  fillEllipse(
+    pixels,
+    size,
+    size * 0.7,
+    size * 0.28,
+    size * 0.1,
+    size * 0.16,
+    FOX,
+  );
   fillCircle(pixels, size, size * 0.4, size * 0.46, size * 0.035, BARK);
   fillCircle(pixels, size, size * 0.6, size * 0.46, size * 0.035, BARK);
   fillEllipse(pixels, size, c, size * 0.62, size * 0.07, size * 0.045, EMBER);
-  fillEllipse(pixels, size, size * 0.74, size * 0.66, size * 0.09, size * 0.11, LANTERN);
+  fillEllipse(
+    pixels,
+    size,
+    size * 0.74,
+    size * 0.66,
+    size * 0.09,
+    size * 0.11,
+    LANTERN,
+  );
   fillCircle(pixels, size, size * 0.74, size * 0.66, size * 0.035, SNOW);
   return pixels;
 }

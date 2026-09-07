@@ -1,69 +1,47 @@
-import type { Metadata } from "next";
-import { brand } from "@/config/brand";
-import { familySku, monetizationCopy } from "@/config/pricing";
+import Link from "next/link";
 import { CheckoutButtons } from "@/components/CheckoutButtons";
-import { ButtonLink, Section } from "@/components/ui";
 import { getViewer } from "@/lib/auth";
 import { pageMetadata } from "@/lib/seo";
-import { getFamilyBilling, isFamilyUnlocked } from "@/lib/subscription";
-
-export const metadata: Metadata = pageMetadata({
-  title: "Start a 14-day family trial",
+import { family, entitlement } from "@/lib/platform/model";
+export const dynamic = "force-dynamic";
+export const metadata = pageMetadata({
+  title: "One family membership · six learners",
   description:
-    "Free demos always. Start a 14-day Foxtrail Family trial, then $9.99/month or $79/year. Parent email only — no Apple IAP.",
+    "Explore all four K–5 learning games with a 14-day family trial. Monthly and discounted annual memberships include up to six children.",
   path: "/unlock",
 });
-
-export const dynamic = "force-dynamic";
-
-export default async function UnlockPage() {
-  const viewer = await getViewer();
-  const billing = viewer ? await getFamilyBilling(viewer.userId) : null;
-  const unlocked = billing ? isFamilyUnlocked(billing) : false;
-
+export default async function Page() {
+  const v = await getViewer();
+  const access = v ? entitlement(family(v.userId)) : null;
   return (
-    <Section className="max-w-4xl">
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-ember">
-        Family subscription
+    <div className="workspace" style={{ maxWidth: 900 }}>
+      <p className="eyebrow">One membership. Their whole world.</p>
+      <h1>Room for every learner.</h1>
+      <p style={{ marginBottom: 24 }}>
+        All four games, up to six children, shared learning plans, custom
+        question banks, saved adventures, and special island rewards.
       </p>
-      <h1 className="mt-2 font-display text-4xl text-pine sm:text-5xl">
-        {monetizationCopy.trialHeadline}
-      </h1>
-      <p className="mt-4 max-w-2xl text-lg leading-8 text-bark/80">
-        {monetizationCopy.trialBody} A parent email is the only account on{" "}
-        {brand.name} in v1 — no child logins, no Apple IAP. After{" "}
-        {familySku.trialDays} days, the library stays open only while the family
-        key is active.
-      </p>
-
-      {unlocked ? (
-        <div className="mt-8 rounded-3xl border border-moss/30 bg-moss/10 p-6">
-          <p className="font-display text-2xl text-pine">This family is unlocked.</p>
-          <p className="mt-2 text-bark/80">
-            The library and Add to Home Screen steps are ready.
-          </p>
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            <ButtonLink href="/library">Open the library</ButtonLink>
-            <ButtonLink href="/dashboard" variant="secondary">
-              Parent dashboard
-            </ButtonLink>
-          </div>
-        </div>
-      ) : (
-        <div className="mt-8">
-          <CheckoutButtons signedIn={Boolean(viewer)} />
-        </div>
-      )}
-
-      <aside className="mt-10 rounded-3xl bg-parchment/70 p-6 text-sm leading-6 text-bark/80">
-        <p className="font-semibold text-pine">What checkout does</p>
-        <p className="mt-2">
-          Stripe Checkout starts a {familySku.trialDays}-day trial, then the
-          monthly or yearly family SKU. A webhook marks this parent as
-          trialing or subscribed. Demos stay free. The games still live on
-          GitHub Pages.
+      <section className="panel">
+        <h2>Start with 14 days to explore.</h2>
+        <p>
+          Your trial begins when you first open your family account. No card is
+          needed to try the games. After the trial, keep a small practice
+          selection free or choose a family membership.
         </p>
-      </aside>
-    </Section>
+        <div className="actions">
+          <Link className="action" href={v ? "/dashboard" : "/sign-up"}>
+            {v ? "Open parent space" : "Start your family trial"}
+          </Link>
+          {access && <span className="badge">{access.label}</span>}
+        </div>
+      </section>
+      <CheckoutButtons signedIn={!!v} />
+      <p className="muted" style={{ marginTop: 20 }}>
+        The annual plan gives you 12 months for the price of 10. Manage or
+        cancel your subscription in parent space. Checkout shows your exact
+        first payment date; if fewer than 48 trial hours remain, membership
+        billing starts at checkout.
+      </p>
+    </div>
   );
 }

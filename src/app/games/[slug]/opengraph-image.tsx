@@ -31,11 +31,19 @@ export default async function GameOpenGraphImage({
         <div style={{ fontSize: 26, color: theme.ember, fontWeight: 700 }}>
           {brand.name}
         </div>
-        <div style={{ fontSize: 68, fontWeight: 700, lineHeight: 1.05, marginTop: 18 }}>
+        <div
+          style={{
+            fontSize: 68,
+            fontWeight: 700,
+            lineHeight: 1.05,
+            marginTop: 18,
+          }}
+        >
           {game?.name ?? "Foxtrail game"}
         </div>
         <div style={{ fontSize: 30, marginTop: 24, color: theme.moss }}>
-          {game?.subject ?? "Educational game"} · Free demo · 14-day family trial
+          {game?.subject ?? "Educational game"} · Free demo · 14-day family
+          trial
         </div>
       </div>
     ),

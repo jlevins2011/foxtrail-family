@@ -30,7 +30,9 @@ export function CheckoutButtons({ signedIn }: { signedIn: boolean }) {
       }
       window.location.assign(data.url);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not start checkout.");
+      setError(
+        cause instanceof Error ? cause.message : "Could not start checkout.",
+      );
       setBusy(null);
     }
   }
@@ -63,21 +65,22 @@ export function CheckoutButtons({ signedIn }: { signedIn: boolean }) {
             >
               {busy === plan.id
                 ? "Opening Stripe…"
-                : `Start 14-day trial · ${plan.label.toLowerCase()}`}
+                : `Choose ${plan.label.toLowerCase()}`}
             </Button>
           </div>
         ))}
       </div>
       {error ? (
-        <p className="rounded-2xl bg-ember/10 px-4 py-3 text-sm text-ember" role="alert">
+        <p
+          className="rounded-2xl bg-ember/10 px-4 py-3 text-sm text-ember"
+          role="alert"
+        >
           {error}
         </p>
       ) : null}
       {!signedIn ? (
         <p className="text-sm leading-6 text-mist">
-          A parent email comes first. We will send you to sign-in, then Stripe
-          Checkout with a 14-day trial. The library is not free after that
-          unless you keep the family key.
+          Sign in and unlock parent space before choosing your membership.
         </p>
       ) : null}
     </div>

@@ -19,7 +19,9 @@ export function PortalButton({ enabled }: { enabled: boolean }) {
       window.location.assign(data.url);
     } catch (cause) {
       setError(
-        cause instanceof Error ? cause.message : "Could not open the billing portal.",
+        cause instanceof Error
+          ? cause.message
+          : "Could not open the billing portal.",
       );
       setBusy(false);
     }
@@ -37,8 +39,8 @@ export function PortalButton({ enabled }: { enabled: boolean }) {
       </Button>
       {!enabled ? (
         <p className="text-sm leading-6 text-mist">
-          The Stripe customer portal appears after the first successful
-          checkout webhook.
+          The Stripe customer portal appears after the first successful checkout
+          webhook.
         </p>
       ) : null}
       {error ? (

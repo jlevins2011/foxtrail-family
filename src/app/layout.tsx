@@ -1,25 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Nunito } from "next/font/google";
+
 import { brand, theme, themeCssVars } from "@/config/brand";
 import { Providers } from "@/components/Providers";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
-import { SetupBanner } from "@/components/SetupBanner";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
 
-const nunito = Nunito({
-  variable: "--font-nunito",
-  subsets: ["latin"],
-});
-
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  ),
   title: {
     default: brand.seoTitle,
     template: `%s · ${brand.shortName}`,
@@ -64,14 +55,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${nunito.variable} ${fraunces.variable} h-full antialiased`}
-      style={themeCssVars}
-    >
+    <html lang="en" className="h-full antialiased" style={themeCssVars}>
       <body className="flex min-h-full flex-col bg-cream text-bark">
         <Providers>
-          <SetupBanner />
           <SiteHeader />
           <main className="flex-1">{children}</main>
           <SiteFooter />

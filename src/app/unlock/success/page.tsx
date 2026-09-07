@@ -1,30 +1,24 @@
-import type { Metadata } from "next";
-import { ButtonLink, Section } from "@/components/ui";
-
-export const metadata: Metadata = {
-  title: "Welcome to the trail",
+import Link from "next/link";
+export const metadata = {
+  title: "Membership confirmation",
+  robots: { index: false, follow: false },
 };
-
-export default function UnlockSuccessPage() {
+export default function Page() {
   return (
-    <Section className="max-w-3xl">
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-ember">
-        Checkout complete
+    <div className="workspace">
+      <h1>Thanks for joining us.</h1>
+      <p>
+        We’re confirming your membership. Your billing status usually updates
+        within a few seconds.
       </p>
-      <h1 className="mt-2 font-display text-4xl text-pine">
-        The lantern is lit.
-      </h1>
-      <p className="mt-4 text-lg leading-8 text-bark/80">
-        Your 14-day full-family trial starts when the Stripe webhook lands —
-        usually a few seconds. After the trial, the library stays open only
-        while the monthly or yearly family key is active. Demos remain free.
-      </p>
-      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-        <ButtonLink href="/library">Go to the library</ButtonLink>
-        <ButtonLink href="/install" variant="secondary">
-          Add to Home Screen
-        </ButtonLink>
+      <div className="actions">
+        <Link className="action" href="/dashboard/membership">
+          Check membership status
+        </Link>
+        <Link className="action secondary" href="/library">
+          Open the library
+        </Link>
       </div>
-    </Section>
+    </div>
   );
 }

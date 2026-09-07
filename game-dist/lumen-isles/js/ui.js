@@ -1,0 +1,1006 @@
+"use strict";
+/* ============================================================
+   UI — HUD, hotbar, pack, crafting, kiln, dialogue, menus,
+   level-ups, home screen, and the challenge wrapper that ties
+   the Learning engine to the Activities renderers.
+   ============================================================ */
+var UI = (function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  var RANKS = ["Firefly Friend", "Meadow Scout", "Brook Wanderer", "Fern Finder",
+    "Hollow Hiker", "Star Gazer", "Isle Explorer", "Grove Guardian",
+    "Crystal Seeker", "Cloud Skipper",
+    "Storm Chaser", "Sky Sailor", "Beacon Bearer", "Wildwood Warden",
+    "Aurora Ranger", "Moonpearl Diver", "Sunforge Smith", "Glimmer Sage",
+    "Root Delver", "Skyrider", "Star Cartographer", "Isle Architect",
+    "Lantern Master", "Horizon Keeper", "Twilight Warden", "Radiant Pathfinder",
+    "Voyager of the Veil", "Master of the Isles", "Luminary", "KEEPER OF LIGHT"];
+
+  function versionLabel() {
+    return "v" + CONFIG.BRAND.version + (CONFIG.BRAND.built ? " · " + CONFIG.BRAND.built : "");
+  }
+
+  function rankFor(level) {
+    if (level <= RANKS.length) return RANKS[level - 1];
+    return "Keeper of Light " + (level - RANKS.length + 1);
+  }
+
+  function xpNeeded(level) {
+    var n = level - 1;
+    var R = CONFIG.REWARDS;
+    return R.xpBase + n * R.xpLinear + n * n * R.xpQuad;
+  }
+
+  /* ---------------- toast ---------------- */
+  var toastTimer = null;
+  function toast(msg, ms) {
+    var t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove("show"); }, ms || 2600);
+  }
+
+  /* ---------------- HUD ---------------- */
+  function updateHud() {
+    var p = Store.data.player;
+    $("level-label").textContent = "Lv " + p.level;
+    $("rank-label").textContent = rankFor(p.level);
+    $("sparks-label").textContent = CONFIG.BRAND.currencyIcon + " " + p.sparks;
+    var need = xpNeeded(p.level);
+    $("xp-fill").style.width = Math.min(100, (p.xp / need) * 100) + "%";
+    // isle light: lightsprings restored
+    var sl = $("springs-label");
+    if (sl && window.Terrain && Terrain.zones) {
+      if (Terrain.zones.length) {
+        var done = Terrain.zones.filter(function (z) { return z.restored; }).length;
+        sl.style.display = "";
+        sl.textContent = "🕯️ " + done + "/" + Terrain.zones.length;
+      } else {
+        sl.style.display = "none";
+      }
+    }
+  }
+
+  function updateQuestHud() {
+    var q = Quests.active();
+    var el = $("quest-hud");
+    if (!q) { el.style.display = "none"; return; }
+    el.style.display = "flex";
+    var have = Math.min(Store.data.player.inventory[q.ask] || 0, q.count);
+    $("quest-hud-text").textContent = q.icon + " " + have + "/" + q.count +
+      (have >= q.count ? "  ✅ Go see " + q.giver + "!" : "");
+  }
+
+  /* ---------------- contextual prompt (replaces crosshair feedback) ---------------- */
+  var promptShown = false;
+  function setPrompt(icon, text, frac) {
+    var el = $("prompt");
+    if (!icon) {
+      if (promptShown) { el.classList.remove("show"); el.textContent = ""; promptShown = false; }
+      return;
+    }
+    promptShown = true;
+    var pips = "";
+    if (frac !== null && frac !== undefined && frac < 1) {
+      var total = 4;
+      var left = Math.ceil(frac * total);
+      pips = "<span class='prompt-pips'>";
+      for (var i = 0; i < total; i++) pips += "<i class='" + (i < left ? "on" : "") + "'></i>";
+      pips += "</span>";
+    }
+    el.innerHTML = "<span class='prompt-icon'>" + icon + "</span><span class='prompt-text'>" + text + "</span>" + pips;
+    el.classList.add("show");
+  }
+
+  /* ---------------- gain popup (+2 🪵 timber ...) ---------------- */
+  var gainTimer = null;
+  function gainPopup(text) {
+    var el = $("gain-popup");
+    el.textContent = text;
+    el.classList.remove("pop");
+    void el.offsetWidth;              // restart the animation
+    el.classList.add("pop");
+    clearTimeout(gainTimer);
+    gainTimer = setTimeout(function () { el.classList.remove("pop"); }, 1500);
+  }
+
+  /* ---------------- build sheet ---------------- */
+  function showBuildSheet() {
+    $("build-sheet").classList.add("open");
+    updateBuildSheet();
+  }
+  function hideBuildSheet() {
+    $("build-sheet").classList.remove("open");
+  }
+  function updateBuildSheet() {
+    var selected=Build.pieceDef(Build.activePiece);
+    if($("build-detail")) $("build-detail").textContent=Build.removeMode?"Remove a piece to recover its materials.":selected.name+" · "+selected.desc;
+    ["roof-down","roof-up"].forEach(function(id){if($(id))$(id).hidden=!Build.isRoof(Build.activePiece);});
+    var sheet = $("build-pieces");
+    if (!sheet || !$("build-sheet").classList.contains("open")) return;
+    var previousScroll=sheet.scrollLeft;
+    sheet.innerHTML = "";
+    Build.PIECES.forEach(function (p) {
+      var locked = p.needs && !Store.data.player.tools[p.needs];
+      var afford = Build.canAfford(p.cost);
+      var card = document.createElement("button");
+      card.className = "piece-card" + (Build.activePiece === p.id && !Build.removeMode ? " active" : "") +
+        (locked ? " locked" : (afford ? "" : " poor"));
+      card.innerHTML = "<span class='piece-icon'>" + p.icon + "</span>" +
+        "<span class='piece-name'>" + p.name + "</span>" +
+        "<span class='piece-cost'>" + (locked ? "🔒 Wren's secret" : Object.keys(p.cost).map(function (k) {
+          return p.cost[k] + (ITEM_ICON[k] || k);
+        }).join(" ")) + "</span>";
+      card.addEventListener("pointerdown", function(e){e.stopPropagation();});
+      card.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (locked) { toast("🔒 Wren the Tinker teaches this one!"); return; }
+        Build.setPiece(p.id);
+        updateBuildSheet();
+      });
+      sheet.appendChild(card);
+    });
+    sheet.scrollLeft=previousScroll;
+    var active=sheet.querySelector(".active");
+    if(active) active.scrollIntoView({block:"nearest",inline:"nearest"});
+    $("build-remove").classList.toggle("active", Build.removeMode);
+  }
+
+  function updateModeButton() {
+    var on = Build.mode;
+    $("btn-mode").textContent = on ? "✖️" : "🛠️";
+    $("btn-mode").classList.toggle("build", on);
+  }
+
+  // kept as a safe alias — old callers refresh the build sheet instead
+  function updateHotbar() { updateBuildSheet(); updateCraftButton(); }
+  function setJumpGlyph(g) { var b = $("btn-jump"); if (b) b.textContent = g; }
+
+  /* ---------------- satchel ---------------- */
+  var SATCHEL_GROUPS = [
+    { name: "Materials", items: ["timber", "stone", "leaves", "claybrick", "glass", "fluff", "emberstone",
+        "skysteel ore", "skysteel", "starstone", "glimmer", "glowmoss", "moonpearl", "aurorium"] },
+    { name: "Garden & Goodies", items: ["berries", "sunfruit", "moonmelon", "berry tart",
+        "sunfruit seeds", "moonmelon seeds", "sunpetal", "bellbloom", "spritecap"] },
+    { name: "Treasures", items: ["feather", "shell", "glowdust"] }
+  ];
+  var ITEM_BLURB = {
+    berries: "🫐 Yummy! Friends might want these — or bake a tart at the kiln.",
+    sunfruit: "🍊 Sweet sunfruit, fresh from your planter!",
+    moonmelon: "🍈 A cool moonmelon. Great trade goods!",
+    "skysteel ore": "🔩 Raw ore — smelt it in Wren's kiln!",
+    skysteel: "⚙️ A skysteel ingot — for a better mallet!",
+    "sunfruit seeds": "🌱 Build a planter (🛠️), then tap it to plant!",
+    "moonmelon seeds": "🌱 Build a planter (🛠️), then tap it to plant!",
+    feather: "🪶 A soft puffbird feather. Two of these and some fluff make a Cloudcap!",
+    shell: "🐚 A shiny shellhopper shell.",
+    glowdust: "💫 Twinkling glowdust from a glowmoth.",
+    "berry tart": "🥧 A warm berry tart. Mmm!",
+    fluff: "☁️ Tuftle fluff — bridges and tents need it!",
+    timber: "🪵 The heart of every build. Chop trees for more!",
+    stone: "🪨 Quarried from outcrops. Walls love it!"
+  };
+
+  function showInventory() {
+    var p = Store.data.player;
+    var inv = p.inventory;
+
+    var malletNames = ["Timber Mallet", "Stone Mallet", "Skysteel Mallet", "Starstone Mallet"];
+    var toolsHtml = "<div class='inv-tools'>" +
+      "<span class='inv-tool'>🔨 " + malletNames[p.toolTier] + "</span>" +
+      (p.tools.hatchet ? "<span class='inv-tool'>🪓 Hatchet</span>" : "") +
+      (p.tools.brush ? "<span class='inv-tool'>🖌️ Brush</span>" : "") +
+      (p.tools.cloudcap ? "<span class='inv-tool'>🪂 Cloudcap</span>" : "") +
+      (p.tools.drill ? "<span class='inv-tool legendary'>🌀 Rootbreaker Drill</span>" : "") +
+      (p.tools.skybadge ? "<span class='inv-tool legendary'>🎈 Skyrider Badge</span>" : "") +
+      (p.tools.sunhammer ? "<span class='inv-tool legendary'>☀️ Sunforged Mallet</span>" : "") +
+      (p.tools.kiln ? "<button class='inv-tool legendary inv-station'>🔥 Sky Kiln</button>" : "") +
+      (p.tools.lanternkit ? "<span class='inv-tool legendary'>🏮 Lantern Kit</span>" : "") +
+      "</div>";
+
+    var groupsHtml = "";
+    var known=SATCHEL_GROUPS.reduce(function(a,g){return a.concat(g.items);},[]);
+    var groups=SATCHEL_GROUPS.concat([{name:"Other keepsakes",items:Object.keys(inv).filter(function(k){return known.indexOf(k)<0;})}]);
+    groups.forEach(function (grp) {
+      var have = grp.items.filter(function (k) { return (inv[k] || 0) > 0; });
+      if (!have.length) return;
+      groupsHtml += "<div class='satchel-group'><div class='satchel-label'>" + grp.name + "</div><div class='satchel-row'>" +
+        have.map(function (item) {
+          return "<button class='satchel-item' data-item='" + safeText(item) + "'>" +
+            "<span class='inv-icon'>" + (ITEM_ICON[item] || "▫️") + "</span>" +
+            "<span class='inv-count'>" + inv[item] + "</span>" +
+            "<span class='inv-name'>" + safeText(item) + "</span></button>";
+        }).join("") + "</div></div>";
+    });
+    if (!groupsHtml) groupsHtml = "<div class='ch-sub'>Your satchel is empty — go gather something!</div>";
+
+    openOverlay(
+      "<div class='ch-title'>🎒 " + safeText(Store.profile.name) + "'s Satchel</div>" +
+      "<div class='ch-sub'>" + CONFIG.BRAND.currencyIcon + " " + p.sparks + " sparks · Lv " + p.level + " " + rankFor(p.level) + "</div>" +
+      toolsHtml +
+      "<div class='satchel-scroll'>" + groupsHtml + "</div>" +
+      "<div class='ch-sub'>Build with 🛠️ · craft tools with TINKER · smelt at the KILN</div>" +
+      "<div class='supply-actions'><button class='big-btn small-btn' id='inv-market'>Trade & supplies</button><button class='big-btn small-btn' id='inv-projects'>My projects</button></div>" +
+      "<button class='big-btn' id='inv-close'>BACK TO THE GAME</button>"
+    );
+    $("inv-close").addEventListener("pointerdown", closeOverlay);
+    $("inv-market").addEventListener("click",showMarket);
+    $("inv-projects").addEventListener("click",showProjects);
+    document.querySelectorAll(".inv-station").forEach(function (b) {
+      b.addEventListener("pointerdown", function (e) {
+        e.stopPropagation();
+        closeOverlay();
+        doKiln();
+      });
+    });
+    document.querySelectorAll(".satchel-item").forEach(function (slot) {
+      slot.addEventListener("pointerdown", function () {
+        var item = slot.getAttribute("data-item");
+        GameAudio.sfx.pop();
+        showItem(item);
+      });
+    });
+  }
+
+  function safeText(s) {return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  function showItem(item) {
+    var inv=Store.data.player.inventory,uses=Economy.uses(item),value=Economy.VALUES[item];
+    openOverlay("<div class='ch-title'>"+safeText(item)+" · "+(inv[item]||0)+"</div>"+
+      "<div class='ch-sub'>Used for</div><ul class='item-uses'>"+(uses.length?uses.map(function(u){return "<li>"+safeText(u)+"</li>";}).join(""):"<li>A keepsake from an earlier adventure.</li>")+"</ul>"+
+      (value?"<button class='big-btn' id='item-sell'>Trade 1 for "+value+" sparks</button>":"")+
+      "<button class='ghost-btn' id='item-back'>Back to satchel</button>");
+    $("item-back").addEventListener("click",showInventory);
+    if($("item-sell"))$("item-sell").addEventListener("click",function(){if(Economy.sell(item,1)){GameAudio.sfx.spark();updateHud();updateHotbar();updateQuestHud();showItem(item);}});
+  }
+  function showMarket() {
+    openOverlay("<div class='ch-title'>Trade & supplies</div><div class='ch-sub'>"+Store.data.player.sparks+" sparks · Trade surplus from your satchel.</div><div class='world-list'>"+
+      Economy.SUPPLIES.map(function(s){return "<button class='world-card supply-card' data-supply='"+s.id+"' "+(Store.data.player.sparks<s.price?"disabled":"")+"><span class='world-name'>"+s.name+"</span><span class='world-req'>"+s.price+" sparks</span></button>";}).join("")+"</div><button class='ghost-btn' id='market-back'>Back to satchel</button>");
+    $("market-back").addEventListener("click",showInventory);
+    document.querySelectorAll("[data-supply]").forEach(function(b){b.addEventListener("click",function(){if(Economy.buy(b.dataset.supply)){GameAudio.sfx.spark();updateHud();updateHotbar();updateQuestHud();showMarket();}});});
+  }
+  function showProjects() {
+    openOverlay("<div class='ch-title'>My island projects</div><div class='ch-sub'>Build at your own pace. Each reward can be claimed once per explorer.</div>"+
+      Economy.PROJECTS.map(function(p){var done=(Store.data.player.projects||{})[p.id],checks=Economy.projectProgress(p),ready=checks.every(function(c){return c.have>=c.need;});return "<section class='project-card'><h3>"+p.name+"</h3><p>"+p.desc+"</p><ul>"+checks.map(function(c){return "<li>"+(c.have>=c.need?"✓ ":"")+c.name+" <b>"+c.have+"/"+c.need+"</b></li>";}).join("")+"</ul><button class='big-btn small-btn' data-project='"+p.id+"' "+(!ready||done?"disabled":"")+">"+(done?"Completed":"Claim "+p.reward+" sparks")+"</button></section>";}).join("")+"<button class='ghost-btn' id='projects-back'>Back to satchel</button>");
+    $("projects-back").addEventListener("click",showInventory);
+    document.querySelectorAll("[data-project]").forEach(function(b){b.addEventListener("click",function(){if(Economy.claim(b.dataset.project)){GameAudio.sfx.quest();updateHud();showProjects();}});});
+  }
+
+  function toggleInventory() {
+    if ($("overlay").classList.contains("open")) closeOverlay();
+    else if (Game.running) showInventory();
+  }
+
+  /* ---------------- crafting ---------------- */
+  var CRAFTS = Economy.CRAFTS;
+
+  var WORKSHOP = Economy.WORKSHOP;
+
+  function canAfford(needs) {
+    var inv = Store.data.player.inventory;
+    return Economy.canAfford(needs);
+  }
+  function takeNeeds(needs) {
+    var inv = Store.data.player.inventory;
+    return Economy.exchange(needs,{},0,"Crafting");
+  }
+  function giveItems(gives) {
+    var inv = Store.data.player.inventory;
+    return Economy.exchange({},gives,0,"Crafting");
+  }
+
+  function availableCraft() {
+    var p = Store.data.player;
+    var next = CRAFTS[p.toolTier];
+    if (!next || p.level < next.level) return null;
+    return canAfford(next.needs) ? next : null;
+  }
+  function nextCraftInfo() { return CRAFTS[Store.data.player.toolTier] || null; }
+
+  function availableWorkshop() {
+    var p = Store.data.player;
+    return WORKSHOP.filter(function (r) {
+      if (r.tool && p.tools[r.tool]) return false;
+      return canAfford(r.needs);
+    });
+  }
+  function visibleWorkshop() {
+    var p = Store.data.player;
+    return WORKSHOP.filter(function (r) { return !(r.tool && p.tools[r.tool]); });
+  }
+  function costStr(needs) {
+    return Object.keys(needs).map(function (k) { return needs[k] + " " + k; }).join(" + ");
+  }
+
+  function updateCraftButton() {
+    var b = $("btn-craft");
+    // Show the bench whenever there is still something to tinker toward, not
+    // only when it's affordable — otherwise a child who has crafted the
+    // hatchet and brush loses the button and never learns what a Cloudcap
+    // costs. Dimmed while nothing is affordable; tapping it lists what to
+    // gather.
+    var ready = !!(availableCraft() || availableWorkshop().length);
+    var next = nextCraftInfo();
+    var pending = visibleWorkshop().length > 0 || !!(next && Store.data.player.level >= next.level);
+    b.style.display = (ready || pending) ? "block" : "none";
+    b.classList.toggle("dim", !ready);
+    b.textContent = ready ? "🔧 TINKER!" : "🔧 TINKER";
+    var s = $("btn-kiln");
+    if (s) s.style.display = Store.data.player.tools.kiln ? "block" : "none";
+  }
+
+  /* ---------------- Wren's kiln recipes ---------------- */
+  var KILN = Economy.KILN;
+
+  function availableKiln() {
+    var p = Store.data.player;
+    var inv = p.inventory;
+    return KILN.filter(function (r) {
+      if (!p.tools[r.need]) return false;
+      return Object.keys(r.needs).every(function (k) { return (inv[k] || 0) >= r.needs[k]; });
+    });
+  }
+
+  function doKiln() {
+    var recipes = KILN.filter(function(r){return Store.data.player.tools[r.need];});
+    if (!recipes.length) { toast("Need emberstone plus ore (or sand, berries, timber) for the kiln!"); return; }
+    var html = "<div class='ch-title'>🔥 Sky Kiln</div>" +
+      "<div class='ch-sub'>Wren's kiln glows and hums. What shall we make?</div>" +
+      "<div class='world-list'>" + recipes.map(function (r, i) {
+        var cost = Object.keys(r.needs).map(function (k) { return r.needs[k] + " " + k; }).join(" + ");
+        return "<button class='world-card kiln-card' data-i='" + i + "'>" +
+          "<span class='world-emoji'>" + r.icon + "</span>" +
+          "<span class='world-name'>Make " + r.name + "</span>" +
+          "<span class='world-req'>" + cost + "</span></button>";
+      }).join("") + "</div>" +
+      "<button class='ghost-btn' id='kiln-back'>⬅️ BACK</button>";
+    openOverlay(html);
+    $("kiln-back").addEventListener("pointerdown", closeOverlay);
+    document.querySelectorAll(".kiln-card").forEach(function (card) {
+      card.addEventListener("pointerdown", function () {
+        var r = recipes[+card.getAttribute("data-i")];
+        var inv = Store.data.player.inventory;
+        if (!Object.keys(r.needs).every(function (k) { return (inv[k] || 0) >= r.needs[k]; })) return;
+        if(!Economy.exchange(r.needs,r.gives,0,"Kiln"))return;
+        Store.save();
+        GameAudio.sfx.kiln();
+        toast(r.icon + " You made " + r.name + "!", 2600);
+        closeOverlay();
+        updateHotbar();
+      });
+    });
+  }
+
+  /* ---------------- challenge wrapper ---------------- */
+  // context: "node" | "chest" | "craft" | "starfall" | "super"
+  function showChallenge(context, onDone, intro) {
+    var ch = Learning.getChallenge(context);
+    if (!ch) {
+      // no curricula assigned — keep the game playable
+      onDone({ correct: true, mistakes: 0, skipped: false, nolesson: true });
+      return;
+    }
+    Learning.markChallengeShown();
+    Activities.present(ch, function (result) {
+      if (!result.skipped) Learning.report(ch, result);
+      onDone(result);
+    }, intro);
+  }
+
+  function startToolChallenge(kindName, onSuccess) {
+    showChallenge("craft", function (result) {
+      if (result.correct && !result.skipped) onSuccess();
+      else if (result.nolesson) onSuccess();
+    }, "🛠️ Craft your " + kindName + "!");
+  }
+
+  function doCraft() {
+    var craft = availableCraft();
+    if (!craft) return;
+    startToolChallenge(craft.name, function () {
+      if(!canAfford(craft.needs) || Store.data.player.toolTier !== craft.tier-1)return;
+      takeNeeds(craft.needs);
+      Store.data.player.toolTier = craft.tier;
+      Store.save();
+      GameAudio.sfx.levelup();
+      GameAudio.say("You crafted a " + craft.name + "!");
+      toast("🔨 You crafted a " + craft.name.toUpperCase() + "! You can gather faster now!", 3500);
+      updateHotbar();
+    });
+  }
+
+  function recipeCardHtml(icon, name, req, extraClass, dataAttrs) {
+    return "<button class='world-card kiln-card" + (extraClass || "") + "' " + (dataAttrs || "") + ">" +
+      "<span class='world-emoji'>" + icon + "</span>" +
+      "<span class='world-name'>Make " + name + "</span>" +
+      "<span class='world-req'>" + req + "</span></button>";
+  }
+
+  function showWorkshop() {
+    var recipes = visibleWorkshop();
+    var ready = recipes.filter(function (r) { return canAfford(r.needs); });
+    var locked = recipes.filter(function (r) { return !canAfford(r.needs); });
+    var mallet = availableCraft();
+    var nextMallet = CRAFTS[Store.data.player.toolTier] || null;
+    var malletReady = !!mallet;
+    var malletLocked = nextMallet && !mallet && Store.data.player.level >= nextMallet.level;
+
+    if (!ready.length && !malletReady && !locked.length && !malletLocked) {
+      closeOverlay();
+      toast("Gather more materials to tinker something up!");
+      return;
+    }
+
+    var html = "<div class='ch-title'>🛠️ Tinker Bench</div>" +
+      "<div class='ch-sub'>Craft tools and seeds. Build furniture from the construction tray.</div>";
+
+    if (ready.length || malletReady) {
+      html += "<div class='world-list'>";
+      ready.forEach(function (r, i) {
+        var extra = (r.blurb ? " · " + r.blurb : "") + (r.tool ? " · word challenge" : "");
+        html += recipeCardHtml(r.icon, r.name, costStr(r.needs) + extra, "", "data-kind='ws' data-i='" + i + "'");
+      });
+      if (malletReady) {
+        html += recipeCardHtml(mallet.icon, mallet.name, costStr(mallet.needs) + " · word challenge", "", "data-kind='mallet'");
+      }
+      html += "</div>";
+    } else {
+      html += "<div class='ch-sub'>Gather a little more, then these recipes light up!</div>";
+    }
+
+    if (locked.length || malletLocked) {
+      html += "<div class='ch-sub'>Need more stuff for:</div><div class='world-list'>";
+      locked.forEach(function (r) {
+        html += recipeCardHtml(r.icon, r.name, "Need " + costStr(r.needs), " locked", "");
+      });
+      if (malletLocked) {
+        html += recipeCardHtml(nextMallet.icon, nextMallet.name, "Need " + costStr(nextMallet.needs), " locked", "");
+      }
+      html += "</div>";
+    }
+
+    html += "<button class='ghost-btn' id='ws-back'>⬅️ BACK</button>";
+    openOverlay(html);
+    $("ws-back").addEventListener("pointerdown", closeOverlay);
+    document.querySelectorAll(".kiln-card[data-kind]").forEach(function (card) {
+      card.addEventListener("pointerdown", function () {
+        var kind = card.getAttribute("data-kind");
+        if (kind === "mallet") {
+          closeOverlay();
+          doCraft();
+          return;
+        }
+        var r = ready[+card.getAttribute("data-i")];
+        if (r) doWorkshop(r);
+      });
+    });
+  }
+
+  function doWorkshop(r) {
+    if (!canAfford(r.needs)) return;
+    if (r.tool) {
+      closeOverlay();
+      startToolChallenge(r.name, function () {
+        if(!canAfford(r.needs) || Store.data.player.tools[r.tool])return;
+        takeNeeds(r.needs);
+        if (r.gives) giveItems(r.gives);
+        Store.data.player.tools[r.tool] = true;
+        Store.save();
+        GameAudio.sfx.levelup();
+        GameAudio.say("You crafted a " + r.name + "!");
+        toast(r.icon + " You crafted a " + r.name + "! " + (r.blurb || ""), 3200);
+        updateHotbar();
+      });
+      return;
+    }
+    takeNeeds(r.needs);
+    if (r.gives) giveItems(r.gives);
+    toast(r.icon + " Crafted " + r.name + "!", 2200);
+    Store.save();
+    GameAudio.sfx.kiln();
+    updateHotbar();
+    showWorkshop();
+  }
+
+  /* ---------------- generic overlay ---------------- */
+  function openOverlay(html) {
+    Controls.setEnabled(false);
+    $("overlay-card").innerHTML = html;
+    $("overlay").classList.add("open");
+  }
+  function closeOverlay() {
+    GameAudio.stopListen();
+    // Drop any half-spoken word. If the speech engine wedged mid-sentence,
+    // leaving it queued would silence the 🔊 buttons on the next card.
+    GameAudio.stop();
+    $("overlay").classList.remove("open");
+    if (Game.running) Controls.setEnabled(true);
+  }
+
+  /* ---------------- Elder Alder: super challenges & legendary tools ---------------- */
+  var LEGENDS = [
+    { key: "drill", name: "ROOTBREAKER DRILL", icon: "🌀", wins: 3,
+      desc: "It can pierce ROOTSTONE! Dig beneath the isle into THE HOLLOW, where moonpearl and aurorium glimmer in the dark!" },
+    { key: "skybadge", name: "SKYRIDER BADGE", icon: "🎈", wins: 5, isle: "skydock",
+      desc: "Cleared for the skies! Elder Alder unlocked CLOUDHAVEN SKYDOCK — a floating harbor with a grand airship. Pause and tap TRAVEL to visit anytime!" },
+    { key: "sunhammer", name: "SUNFORGED MALLET", icon: "☀️", wins: 8,
+      desc: "Forged in sunlight — it gathers everything TWICE as fast!" }
+  ];
+
+  function nextLegend() {
+    var tools = Store.data.player.tools;
+    for (var i = 0; i < LEGENDS.length; i++) {
+      if (!tools[LEGENDS[i].key]) return LEGENDS[i];
+    }
+    return null;
+  }
+
+  function showToolUnlock(tool) {
+    var html =
+      "<div class='levelup-burst'>" + tool.icon + "</div>" +
+      "<div class='ch-title big'>" + (tool.isle ? "CLEARED FOR THE SKIES!" : "LEGENDARY TOOL!") + "</div>" +
+      "<div class='rank-name'>" + tool.icon + " " + tool.name + "</div>" +
+      "<div class='unlock-list'><div class='unlock-item'>" + tool.desc + "</div></div>" +
+      "<button class='big-btn' id='tool-ok'>" + (tool.isle ? "🎈 LET'S FLY!" : "WHOA!") + "</button>";
+    openOverlay(html);
+    GameAudio.sfx.levelup();
+    GameAudio.say("You earned the " + tool.name + "! " + tool.desc);
+    Activities.celebrate();
+    $("tool-ok").addEventListener("pointerdown", function () {
+      closeOverlay();
+      updateHotbar();
+      if (tool.isle) Game.travelTo(tool.isle);
+    });
+  }
+
+  function superChallenge(who, winsObj, nextFn, introIcon) {
+    showChallenge("super", function (result) {
+      if (!result.correct || result.skipped) return;
+      Game.grantSparks(CONFIG.REWARDS.superSparks);
+      Game.grantXP(CONFIG.REWARDS.superXP);
+      if (result.mistakes <= 1) {
+        winsObj.wins += 1;
+        Store.save();
+        var t = nextFn();
+        if (t && winsObj.wins >= t.wins) {
+          Store.data.player.tools[t.key] = true;
+          Store.save();
+          updateHotbar();
+          setTimeout(function () { showToolUnlock(t); }, 400);
+          return;
+        }
+        toast(t
+          ? introIcon + " Super win! " + (t.wins - winsObj.wins) + " more for the next secret!"
+          : introIcon + " Super win! +" + CONFIG.REWARDS.superSparks + " sparks, +" + CONFIG.REWARDS.superXP + " light!", 3000);
+      } else {
+        toast("💪 You got it! Perfect wins count toward the next secret!", 3000);
+      }
+    }, introIcon + " SUPER CHALLENGE!");
+  }
+
+  function showElder(npc) {
+    var d = Store.data.elder;
+    var tool = nextLegend();
+    var greetings = [
+      "Ah, young Keeper! The isles brighten when you learn.",
+      "My lantern has watched these isles for a hundred years. Ready to shine?",
+      "Every Keeper before you loved a good challenge. Shall we?"
+    ];
+    if (tool && tool.key === "skybadge") {
+      greetings = [
+        "I once sailed the sky-lanes myself! A few more wins and I'll show you the Skydock.",
+        "The airship is moored and waiting, young Keeper. Earn your badge!",
+        "Skyriders earn their wings with sharp minds. Shall we begin?"
+      ];
+    } else if (Store.data.player.tools.skybadge) {
+      greetings = [
+        "Cloudhaven Skydock is yours now! Pause and tap TRAVEL to visit the airship.",
+        "The sky-lanes remember every Keeper who earns the badge. Well done.",
+        "A fine day for flying, young Keeper!"
+      ];
+    }
+    var progress = tool
+      ? (tool.key === "skybadge"
+        ? "Win " + (tool.wins - d.wins) + " more and I'll pin the SKYRIDER BADGE on you! 🎈"
+        : "Win " + (tool.wins - d.wins) + " more and I'll give you a MYSTERY TOOL! 🎁")
+      : "You hold all my treasures! But I still have sparks... ✨";
+    var canFly = Store.data.player.tools.skybadge && Store.data.player.isle !== "skydock";
+    var html =
+      "<div class='npc-head elder' style='--hair:" + npc.def.hair + "'><span class='npc-prop'>🏮</span></div>" +
+      "<div class='ch-title'>Elder Alder</div>" +
+      "<div class='sentence-text'>" + greetings[Math.floor(Math.random() * greetings.length)] +
+      " Ready for a SUPER CHALLENGE, " + safeText(Store.profile.name) + "?<br><br>" + progress + "</div>" +
+      "<button class='big-btn' id='elder-go'>🔥 SUPER CHALLENGE!</button>" +
+      (canFly ? "<button class='big-btn' id='elder-fly'>🎈 VISIT THE SKYDOCK</button>" : "") +
+      "<button class='ghost-btn' id='elder-later'>Maybe later</button>";
+    openOverlay(html);
+    GameAudio.sfx.quest();
+    $("elder-later").addEventListener("pointerdown", closeOverlay);
+    $("elder-go").addEventListener("pointerdown", function () {
+      superChallenge("elder", Store.data.elder, nextLegend, "🔥");
+    });
+    var flyBtn = $("elder-fly");
+    if (flyBtn) flyBtn.addEventListener("pointerdown", function () {
+      closeOverlay();
+      Game.travelTo("skydock");
+    });
+  }
+
+  /* ---------------- Wren: super challenges & tinker secrets ---------------- */
+  var WREN_TOOLS = [
+    { key: "kiln", name: "SKY KILN", icon: "🔥", wins: 3,
+      desc: "Now THAT'S tinkering! Smelt skysteel ore + emberstone into INGOTS, cloudsand into GLASS, and berries into warm TARTS!" },
+    { key: "lanternkit", name: "LANTERN KIT", icon: "🏮", wins: 8,
+      desc: "Turn timber and emberstone into LANTERNS that GLOW! Light up caves and The Hollow so treasure can't hide." }
+  ];
+
+  function nextWrenTool() {
+    var tools = Store.data.player.tools;
+    for (var i = 0; i < WREN_TOOLS.length; i++) {
+      if (!tools[WREN_TOOLS[i].key]) return WREN_TOOLS[i];
+    }
+    return null;
+  }
+
+  function showWren(npc) {
+    if (!Store.data.tinker) Store.data.tinker = { wins: 0 };
+    var m = Store.data.tinker;
+    var tool = nextWrenTool();
+    var greetings = [
+      "Wrench, goggles, spark of genius — check! Ready for a SUPER CHALLENGE?",
+      "I've been tinkering all morning. Your brain is my favorite machine!",
+      "A sharp mind builds marvelous things. Let's test yours!"
+    ];
+    var progress = tool
+      ? "Win " + (tool.wins - m.wins) + " more and I'll teach you a SECRET tinker trick! 🎁"
+      : "You know all my tricks! But I still have sparks... ✨";
+    var html =
+      "<div class='npc-head tinker' style='--hair:" + npc.def.hair + "'><span class='npc-prop'>🔧</span></div>" +
+      "<div class='ch-title'>Wren the Tinker</div>" +
+      "<div class='sentence-text'>" + greetings[Math.floor(Math.random() * greetings.length)] +
+      " Ready, " + safeText(Store.profile.name) + "?<br><br>" + progress + "</div>" +
+      "<button class='big-btn' id='wren-go'>🔧 SUPER CHALLENGE!</button>" +
+      "<button class='ghost-btn' id='wren-later'>Maybe later</button>";
+    openOverlay(html);
+    GameAudio.sfx.quest();
+    $("wren-later").addEventListener("pointerdown", closeOverlay);
+    $("wren-go").addEventListener("pointerdown", function () {
+      superChallenge("wren", Store.data.tinker, nextWrenTool, "🔧");
+    });
+  }
+
+  /* ---------------- dialogue ---------------- */
+  function showDialogue(npc) {
+    if (npc.def.fox) {
+      GameAudio.sfx.fox();
+      var pets = [
+        "🦊 Pip chirps and wags his fluffy tail!",
+        "🦊 Pip rolls over for belly rubs!",
+        "🦊 Pip zooms in a happy circle around you!",
+        "🦊 Pip boops your hand with his nose!"
+      ];
+      toast(pets[Math.floor(Math.random() * pets.length)], 2200);
+      npc.group.rotation.y += 0.6;
+      return;
+    }
+    if (npc.def.elder) { showElder(npc); return; }
+    if (npc.def.tinker) { showWren(npc); return; }
+    var name = npc.def.name;
+    var q = Quests.active();
+
+    if (q && q.giver === name && Quests.isComplete()) {
+      var doneHtml =
+        "<div class='npc-head' style='--hair:" + npc.def.hair + ";--shirt:" + npc.def.shirt + "'></div>" +
+        "<div class='ch-title'>" + name + "</div>" +
+        "<div class='sentence-text'>You did it! Thank you, " + safeText(Store.profile.name) + "! 🎉</div>" +
+        "<button class='big-btn' id='dlg-done'>✨ GET REWARD</button>";
+      openOverlay(doneHtml);
+      GameAudio.sfx.quest();
+      GameAudio.say("You did it! Thank you " + safeText(Store.profile.name) + "!");
+      $("dlg-done").addEventListener("pointerdown", function () {
+        Quests.finish();
+        Activities.celebrate();
+        setTimeout(closeOverlay, 700);
+      });
+      return;
+    }
+
+    if (q) {
+      var remindHtml =
+        "<div class='npc-head' style='--hair:" + npc.def.hair + ";--shirt:" + npc.def.shirt + "'></div>" +
+        "<div class='ch-title'>" + name + "</div>" +
+        "<div class='sentence-text'>" + (q.giver === name ? q.text : "Go help " + q.giver + " first! " + q.icon) + "</div>" +
+        "<button type='button' class='speak-btn small' id='dlg-speak'>🔊</button>" +
+        "<button class='big-btn' id='dlg-ok'>OK!</button>";
+      openOverlay(remindHtml);
+      Activities.bindSpeak("dlg-speak", function () {
+        return q.giver === name ? q.text : "Go help " + q.giver + " first!";
+      }, 0.8);
+      $("dlg-ok").addEventListener("pointerdown", closeOverlay);
+      return;
+    }
+
+    // offer a new quest with a quick comprehension check
+    var quest = Quests.pickQuest();
+    var choices = [quest.icon].concat(quest.decoys).sort(function () { return Math.random() - 0.5; });
+    var html =
+      "<div class='npc-head' style='--hair:" + npc.def.hair + ";--shirt:" + npc.def.shirt + "'></div>" +
+      "<div class='ch-title'>" + name + "</div>" +
+      "<div class='sentence-text'>Hi " + safeText(Store.profile.name) + "! " + quest.text + "</div>" +
+      "<button type='button' class='speak-btn small' id='dlg-speak'>🔊 Help me read it</button>" +
+      "<div class='ch-sub'>What does " + name + " need?</div>" +
+      "<div class='word-grid' id='dlg-grid'></div>" +
+      "<button class='ghost-btn' id='dlg-later'>Maybe later</button>";
+    openOverlay(html);
+    GameAudio.sfx.quest();
+    var mistakes = 0, answered = false;
+    var grid = $("dlg-grid");
+    choices.forEach(function (icon) {
+      var b = document.createElement("button");
+      b.className = "word-block emoji-block";
+      b.textContent = icon;
+      b.addEventListener("pointerdown", function (e) {
+        e.stopPropagation();
+        if (answered) return;
+        if (icon === quest.icon) {
+          answered = true;
+          GameAudio.sfx.correct();
+          Stats.recordChallenge({ subject: "reading", skill: "sentences" }, { correct: true, mistakes: mistakes });
+          Game.notifyEdu();
+          Quests.start(name, quest);
+          GameAudio.say("Yes! " + quest.text);
+          b.classList.add("right");
+          setTimeout(function () {
+            closeOverlay();
+            toast(quest.icon + " New quest from " + name + "!");
+          }, 800);
+        } else {
+          mistakes++;
+          GameAudio.sfx.wrong();
+          b.classList.add("wrong");
+          setTimeout(function () { b.classList.remove("wrong"); }, 500);
+        }
+      });
+      grid.appendChild(b);
+    });
+    Activities.bindSpeak("dlg-speak", quest.text, 0.8);
+    $("dlg-later").addEventListener("pointerdown", closeOverlay);
+  }
+
+  /* ---------------- level up ---------------- */
+  function showLevelUp(newLevel) {
+    var unlocks = [];
+    ISLE_DEFS.forEach(function (w) {
+      if (!w.needLegend && w.level === newLevel) unlocks.push(w.emoji + " NEW ISLE: " + w.name + "!");
+    });
+    CRAFTS.forEach(function (c) {
+      if (c.level === newLevel) unlocks.push("🔨 You can now craft a " + c.name + "!");
+    });
+    var html =
+      "<div class='levelup-burst'>🎆</div>" +
+      "<div class='ch-title big'>LEVEL " + newLevel + "!</div>" +
+      "<div class='rank-name'>" + rankFor(newLevel) + "</div>" +
+      (unlocks.length ? "<div class='unlock-list'>" + unlocks.map(function (u) {
+        return "<div class='unlock-item'>" + u + "</div>";
+      }).join("") + "</div>" : "") +
+      "<button class='big-btn' id='lv-ok'>AWESOME!</button>";
+    openOverlay(html);
+    GameAudio.sfx.levelup();
+    GameAudio.say("Level " + newLevel + "! You are now a " + rankFor(newLevel) + "!");
+    Activities.celebrate();
+    $("lv-ok").addEventListener("pointerdown", function () {
+      closeOverlay();
+      updateHud();
+    });
+  }
+
+  /* ---------------- pause menu / isles ---------------- */
+  function showPause() {
+    // the question timer, if a parent set one: when the next wishing star is due
+    var paceLine = "";
+    if (Learning.nudgeMs() > 0) {
+      var due = Learning.nudgeDueMs();
+      paceLine = "<div class='ch-sub pace-line'>🌠 " + (due > 0
+        ? "A wishing star in " + Learning.minutesText(due) + " unless you find a question first"
+        : "A wishing star is on its way!") + "</div>";
+    }
+    var html =
+      "<div class='ch-title'>PAUSED</div>" +
+      "<div class='ch-sub version-line'>" + CONFIG.BRAND.name + " " + versionLabel() + "</div>" +
+      paceLine +
+      "<button class='big-btn' id='pm-resume'>▶️ KEEP PLAYING</button>" +
+      "<button class='big-btn' id='pm-isles'>🗺️ TRAVEL TO AN ISLE</button>" +
+      "<button class='big-btn' id='pm-home'>🏠 SWITCH EXPLORER</button>" +
+      "<button class='ghost-btn hold-btn' id='pm-parent'>🗝️ PARENTS (hold)</button>";
+    openOverlay(html);
+    $("pm-resume").addEventListener("pointerdown", closeOverlay);
+    $("pm-isles").addEventListener("pointerdown", showIsles);
+    $("pm-home").addEventListener("pointerdown", function () {
+      closeOverlay();
+      Game.stop();
+      showHome();
+    });
+    holdToOpen($("pm-parent"), function () { Parent.show(); });
+  }
+
+  function holdToOpen(btn, fn) {
+    var timer = null;
+    btn.addEventListener("pointerdown", function () {
+      btn.classList.add("holding");
+      timer = setTimeout(function () { btn.classList.remove("holding"); fn(); }, 1500);
+    });
+    ["pointerup", "pointerleave", "pointercancel"].forEach(function (ev) {
+      btn.addEventListener(ev, function () {
+        btn.classList.remove("holding");
+        clearTimeout(timer);
+      });
+    });
+  }
+
+  function isleLocked(w) {
+    if (w.needLegend) return !Store.data.player.tools[w.needLegend];
+    return Store.data.player.level < w.level;
+  }
+  function isleLockHint(w) {
+    if (w.needLegend === "skybadge") return "Earn the Skyrider Badge from Elder Alder";
+    if (w.needLegend) return "A special unlock";
+    return "Level " + w.level;
+  }
+
+  function showIsles() {
+    var html = "<div class='ch-title'>🗺️ THE ISLES</div><div class='world-list'>";
+    ISLE_DEFS.forEach(function (w) {
+      var locked = isleLocked(w);
+      html += "<button class='world-card" + (locked ? " locked" : "") +
+        (Store.data.player.isle === w.id ? " current" : "") + "' data-isle='" + w.id + "'>" +
+        "<span class='world-emoji'>" + (locked ? "🔒" : w.emoji) + "</span>" +
+        "<span class='world-name'>" + w.name + "</span>" +
+        "<span class='world-req'>" + (locked ? isleLockHint(w) : (Store.data.player.isle === w.id ? "You are here!" : (w.description || "Tap to travel"))) + "</span>" +
+        "</button>";
+    });
+    html += "</div><button class='ghost-btn' id='wl-back'>⬅️ BACK</button>";
+    openOverlay(html);
+    document.querySelectorAll(".world-card").forEach(function (card) {
+      card.addEventListener("pointerdown", function () {
+        var id = card.getAttribute("data-isle");
+        var def = ISLE_DEFS.find(function (w) { return w.id === id; });
+        if (isleLocked(def)) {
+          GameAudio.sfx.wrong();
+          toast("🔒 " + isleLockHint(def) + " to unlock " + def.name + "!");
+          return;
+        }
+        closeOverlay();
+        Game.travelTo(id);
+      });
+    });
+    $("wl-back").addEventListener("pointerdown", showPause);
+  }
+
+  /* ---------------- home screen ---------------- */
+  function showHome() {
+    $("home").style.display = "flex";
+    $("hud").style.display = "none";
+    Controls.setEnabled(false);
+    $("home-title").textContent = CONFIG.BRAND.icon + " " + CONFIG.BRAND.name;
+    $("home-tag").textContent = CONFIG.BRAND.tagline;
+    $("home-version").textContent = versionLabel();
+    renderPlayerButtons();
+  }
+  function hideHome() {
+    $("home").style.display = "none";
+    $("hud").style.display = "block";
+  }
+
+  function selectProfile(profile) {
+    try { localStorage.setItem("lumen_last_player", profile.id); } catch (e) {}
+    Store.load(profile);
+    GameAudio.unlock();
+    GameAudio.say("Let's go, " + profile.name + "!");
+    Game.start();
+  }
+
+  var AVATARS = ["🦊", "🦉", "🐢", "🐦", "🦋", "🐰", "🦁", "🐙", "🦄", "🐸", "🐼", "🚀"];
+  var COLORS = ["#5fae6f", "#4a90d9", "#c9843a", "#9b59d0", "#d95f8a", "#3fada8"];
+
+  function renderPlayerButtons() {
+    var wrap = $("player-buttons");
+    wrap.innerHTML = "";
+    var profiles = Store.family.profiles;
+    $("home-empty").style.display = profiles.length ? "none" : "block";
+    profiles.forEach(function (p, i) {
+      var pk = Store.peek(p);
+      var b = document.createElement("button");
+      b.className = "mc-btn player-btn";
+      b.style.background = p.color || COLORS[i % COLORS.length];
+      b.innerHTML = p.emoji + " " + safeText(p.name.toUpperCase()) +
+        "<span class='player-lvl'>" + (pk ? "Lv " + pk.level + " · " + rankFor(pk.level) : "New adventure!") + "</span>";
+      b.addEventListener("pointerdown", function () { selectProfile(p); });
+      wrap.appendChild(b);
+    });
+    var add = document.createElement("button");
+    add.className = "mc-btn player-btn new-explorer";
+    add.innerHTML = "➕ NEW EXPLORER";
+    add.addEventListener("pointerdown", showNewExplorer);
+    wrap.appendChild(add);
+  }
+
+  function showNewExplorer() { if(window.FamilyHost){FamilyHost.parent();return;}
+    var html =
+      "<div class='ch-title'>🌟 New Explorer</div>" +
+      "<div class='ch-sub'>What's your explorer name? (a nickname is perfect)</div>" +
+      "<input type='text' id='ne-name' class='pr-input big-input' maxlength='16' placeholder='Explorer name'>" +
+      "<div class='ch-sub'>Pick your explorer badge:</div>" +
+      "<div class='avatar-grid' id='ne-avatars'>" +
+      AVATARS.map(function (a, i) {
+        return "<button class='avatar-btn" + (i === 0 ? " picked" : "") + "' data-a='" + a + "'>" + a + "</button>";
+      }).join("") + "</div>" +
+      "<div class='ch-sub'>Next, a grown-up picks your grade and lessons — or you can skip that for now.</div>" +
+      "<button class='big-btn' id='ne-go'>🚀 NEXT</button>" +
+      "<button class='ghost-btn' id='ne-back'>⬅️ Back</button>";
+    openOverlay(html);
+    var picked = { emoji: AVATARS[0] };
+    document.querySelectorAll(".avatar-btn").forEach(function (b) {
+      b.addEventListener("pointerdown", function () {
+        document.querySelectorAll(".avatar-btn").forEach(function (x) { x.classList.remove("picked"); });
+        b.classList.add("picked");
+        picked.emoji = b.getAttribute("data-a");
+      });
+    });
+    $("ne-back").addEventListener("pointerdown", function () { closeOverlay(); });
+    $("ne-go").addEventListener("pointerdown", function () {
+      var name = ($("ne-name").value || "").trim();
+      if (!name) { $("ne-name").style.borderColor = "#c0392b"; $("ne-name").focus(); return; }
+      var idx = Store.family.profiles.length;
+      // The kid half is done. The grown-up half (grade + subjects) is a
+      // separate, PIN-gated step; skipping it keeps sensible defaults.
+      var p = Store.addProfile({ name: name, emoji: picked.emoji, color: COLORS[idx % COLORS.length],
+                                 grade: CONFIG.DEFAULT_GRADE, setupConfirmed: false });
+      Parent.showSetup(p.id, {
+        fromKid: true,
+        onDone: function () { closeOverlay(); selectProfile(p); },
+        onSkip: function () { closeOverlay(); selectProfile(p); }
+      });
+    });
+  }
+
+  function init() {
+    document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    document.addEventListener("pointerdown", function () { GameAudio.unlock(); }, true);
+    $("btn-pause").addEventListener("pointerdown", function (e) { e.stopPropagation(); showPause(); });
+    $("btn-bag").addEventListener("pointerdown", function (e) { e.stopPropagation(); showInventory(); });
+    $("btn-mode").addEventListener("pointerdown", function (e) { e.stopPropagation(); Game.toggleMode(); });
+    $("btn-craft").addEventListener("pointerdown", function (e) { e.stopPropagation(); showWorkshop(); });
+    $("btn-kiln").addEventListener("pointerdown", function (e) { e.stopPropagation(); doKiln(); });
+    var jb = $("btn-jump");
+    jb.addEventListener("pointerdown", function (e) { e.stopPropagation(); Player.jump = true; });
+    ["pointerup", "pointerleave", "pointercancel"].forEach(function (ev) {
+      jb.addEventListener(ev, function () { Player.jump = false; });
+    });
+    // build sheet controls
+    $("roof-up").addEventListener("click",function(){Build.liftRoof(1);});
+    $("roof-down").addEventListener("click",function(){Build.liftRoof(-1);});
+    $("build-rotate").addEventListener("pointerdown", function (e) { e.stopPropagation(); Build.rotate(); });
+    $("build-remove").addEventListener("pointerdown", function (e) {
+      e.stopPropagation();
+      Build.toggleRemove();
+      updateBuildSheet();
+      toast(Build.removeMode ? "🧹 Tap a piece to take it back" : "🛠️ Placing pieces again", 1600);
+    });
+    $("build-done").addEventListener("pointerdown", function (e) { e.stopPropagation(); Game.toggleMode(); });
+    holdToOpen($("btn-home-parent"), function () { Parent.show(); });
+  }
+
+  return {
+    init: init, toast: toast, updateHud: updateHud, updateHotbar: updateHotbar,
+    updateQuestHud: updateQuestHud, updateModeButton: updateModeButton,
+    setPrompt: setPrompt, gainPopup: gainPopup,
+    showBuildSheet: showBuildSheet, hideBuildSheet: hideBuildSheet, updateBuildSheet: updateBuildSheet,
+    showChallenge: showChallenge, showDialogue: showDialogue,
+    showProjects:showProjects, showMarket:showMarket, showInventory: showInventory, toggleInventory: toggleInventory,
+    showLevelUp: showLevelUp, showPause: showPause, showHome: showHome, hideHome: hideHome,
+    showNewExplorer: showNewExplorer, setJumpGlyph: setJumpGlyph,
+    rankFor: rankFor, xpNeeded: xpNeeded, nextCraftInfo: nextCraftInfo, showWorkshop: showWorkshop,
+    versionLabel: versionLabel,
+    openOverlay: openOverlay, closeOverlay: closeOverlay, holdToOpen: holdToOpen
+  };
+})();

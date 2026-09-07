@@ -1,44 +1,37 @@
 import { cache } from "react";
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { isClerkConfigured, isDevUnlockEnabled } from "@/lib/env";
-
+import { isClerkConfigured } from "@/lib/env";
 export type Viewer = {
   userId: string;
   email: string | null;
   isDevPreview: boolean;
 };
-
 export const getViewer = cache(async (): Promise<Viewer | null> => {
-  if (isDevUnlockEnabled() && !isClerkConfigured()) {
-    return {
-      userId: "dev-parent",
-      email: "dev@localhost",
-      isDevPreview: true,
-    };
+  if (
+    process.env.NODE_ENV !== "production" &&
+    process.env.FOXTRAIL_TEST_MODE === "true"
+  ) {
+    const { session } = await import("@/lib/platform/security");
+    const s = await session("test");
+    if (s)
+      return {
+        userId: s.family,
+        email: "Local testing family",
+        isDevPreview: true,
+      };
   }
-
-  if (!isClerkConfigured()) {
-    return null;
-  }
-
-  const { isAuthenticated, userId } = await auth();
-  if (!isAuthenticated || !userId) {
-    return null;
-  }
-
+  if (!isClerkConfigured()) return null;
+  const { userId } = await auth();
+  if (!userId) return null;
   const user = await currentUser();
-  const email =
-    user?.primaryEmailAddress?.emailAddress ??
-    user?.emailAddresses[0]?.emailAddress ??
-    null;
-
-  return { userId, email, isDevPreview: false };
+  return {
+    userId,
+    email: user?.primaryEmailAddress?.emailAddress ?? null,
+    isDevPreview: false,
+  };
 });
-
-export async function requireViewer(): Promise<Viewer> {
-  const viewer = await getViewer();
-  if (!viewer) {
-    throw new Error("Unauthorized");
-  }
-  return viewer;
+export async function requireViewer() {
+  const v = await getViewer();
+  if (!v) throw new Error("Unauthorized");
+  return v;
 }

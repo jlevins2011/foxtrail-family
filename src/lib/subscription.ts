@@ -1,7 +1,6 @@
-import { clerkClient } from "@clerk/nextjs/server";
-import { isDevUnlockEnabled } from "@/lib/env";
+import { family, saveFamily } from "@/lib/platform/model";
+import { atomic } from "@/lib/platform/db";
 import type { PlanId } from "@/config/pricing";
-
 export type SubscriptionStatus =
   | "none"
   | "active"
@@ -10,128 +9,59 @@ export type SubscriptionStatus =
   | "canceled"
   | "unpaid"
   | "incomplete";
-
 export type FamilyBilling = {
   status: SubscriptionStatus;
   plan: PlanId | null;
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
   currentPeriodEnd: string | null;
-  source: "clerk" | "dev";
+  source: "database";
 };
-
 export const emptyBilling: FamilyBilling = {
   status: "none",
   plan: null,
   stripeCustomerId: null,
   stripeSubscriptionId: null,
   currentPeriodEnd: null,
-  source: "clerk",
+  source: "database",
 };
-
-export function isFamilyUnlocked(billing: FamilyBilling) {
+export function isFamilyUnlocked(b: FamilyBilling) {
   return (
-    billing.status === "active" ||
-    billing.status === "trialing" ||
-    billing.status === "past_due"
+    ["active", "trialing"].includes(b.status) &&
+    !!b.currentPeriodEnd &&
+    Date.parse(b.currentPeriodEnd) > Date.now()
   );
 }
-
 export function statusLabel(status: SubscriptionStatus) {
-  switch (status) {
-    case "active":
-      return "Active";
-    case "trialing":
-      return "14-day trial";
-    case "past_due":
-      return "Past due";
-    case "canceled":
-      return "Canceled";
-    case "unpaid":
-      return "Unpaid";
-    case "incomplete":
-      return "Incomplete";
-    default:
-      return "Not subscribed";
-  }
+  return status === "none" ? "No paid membership" : status.replaceAll("_", " ");
 }
-
-function asPlan(value: unknown): PlanId | null {
-  return value === "monthly" || value === "yearly" ? value : null;
+export async function getFamilyBilling(id: string): Promise<FamilyBilling> {
+  const b = family(id).billing;
+  return b
+    ? {
+        status: b.status as SubscriptionStatus,
+        plan: b.plan as PlanId,
+        stripeCustomerId: b.customer,
+        stripeSubscriptionId: b.subscription,
+        currentPeriodEnd: new Date(b.periodEnd).toISOString(),
+        source: "database",
+      }
+    : emptyBilling;
 }
-
-function asStatus(value: unknown): SubscriptionStatus {
-  switch (value) {
-    case "active":
-    case "trialing":
-    case "past_due":
-    case "canceled":
-    case "unpaid":
-    case "incomplete":
-      return value;
-    default:
-      return "none";
-  }
-}
-
-export async function getFamilyBilling(userId: string): Promise<FamilyBilling> {
-  if (isDevUnlockEnabled() && userId === "dev-parent") {
-    return {
-      status: "active",
-      plan: "yearly",
-      stripeCustomerId: null,
-      stripeSubscriptionId: null,
-      currentPeriodEnd: null,
-      source: "dev",
-    };
-  }
-
-  const client = await clerkClient();
-  const user = await client.users.getUser(userId);
-  const meta = user.publicMetadata;
-
-  return {
-    status: asStatus(meta.subscriptionStatus),
-    plan: asPlan(meta.plan),
-    stripeCustomerId:
-      typeof meta.stripeCustomerId === "string" ? meta.stripeCustomerId : null,
-    stripeSubscriptionId:
-      typeof meta.stripeSubscriptionId === "string"
-        ? meta.stripeSubscriptionId
-        : null,
-    currentPeriodEnd:
-      typeof meta.currentPeriodEnd === "string" ? meta.currentPeriodEnd : null,
-    source: "clerk",
-  };
-}
-
 export async function saveFamilyBilling(
-  userId: string,
-  billing: Omit<FamilyBilling, "source">,
+  id: string,
+  b: Omit<FamilyBilling, "source">,
 ) {
-  const client = await clerkClient();
-  await client.users.updateUserMetadata(userId, {
-    publicMetadata: {
-      subscriptionStatus: billing.status,
-      plan: billing.plan,
-      stripeCustomerId: billing.stripeCustomerId,
-      stripeSubscriptionId: billing.stripeSubscriptionId,
-      currentPeriodEnd: billing.currentPeriodEnd,
-    },
+  atomic(() => {
+    const f = family(id);
+    f.billing = {
+      status: b.status,
+      customer: b.stripeCustomerId ?? "",
+      subscription: b.stripeSubscriptionId ?? "",
+      periodEnd: b.currentPeriodEnd ? Date.parse(b.currentPeriodEnd) : 0,
+      plan: b.plan ?? "",
+    };
+    f.trialUsed = true;
+    saveFamily(f);
   });
-}
-
-export async function findClerkUserId(options: {
-  userId?: string | null;
-  email?: string | null;
-}) {
-  if (options.userId) return options.userId;
-  if (!options.email) return null;
-
-  const client = await clerkClient();
-  const result = await client.users.getUserList({
-    emailAddress: [options.email],
-    limit: 1,
-  });
-  return result.data[0]?.id ?? null;
 }
