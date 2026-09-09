@@ -17,7 +17,7 @@ export function SiteFooter() {
             Games
           </Link>
           <Link className="hover:underline" href="/privacy">
-            Privacy
+            Privacy & parent choices
           </Link>
           <Link className="hover:underline" href="/install">
             Add to Home Screen

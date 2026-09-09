@@ -10,7 +10,7 @@ export function database() {
   mkdirSync(dirname(path), { recursive: true });
   db = new DatabaseSync(path);
   db.exec(
-    "PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;",
+    "PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA secure_delete=ON; PRAGMA busy_timeout=5000;",
   );
   db.exec(`CREATE TABLE IF NOT EXISTS schema_version(version INTEGER PRIMARY KEY);
  CREATE TABLE IF NOT EXISTS families(id TEXT PRIMARY KEY, data TEXT NOT NULL, updated INTEGER NOT NULL);
@@ -23,6 +23,11 @@ export function database() {
  CREATE TABLE IF NOT EXISTS native_records(id TEXT PRIMARY KEY,family TEXT NOT NULL,child TEXT NOT NULL,game TEXT NOT NULL,lesson TEXT NOT NULL,data TEXT NOT NULL,created INTEGER NOT NULL);
  CREATE TABLE IF NOT EXISTS webhook_events(id TEXT PRIMARY KEY,created INTEGER NOT NULL);
  CREATE TABLE IF NOT EXISTS agents(id TEXT PRIMARY KEY, hash TEXT UNIQUE NOT NULL, data TEXT NOT NULL);
+ CREATE TABLE IF NOT EXISTS consents(family TEXT PRIMARY KEY,version TEXT NOT NULL,status TEXT NOT NULL,email_hash TEXT NOT NULL,requested INTEGER NOT NULL,reviewed INTEGER,reviewer TEXT,attachment TEXT,mime TEXT,evidence_hash TEXT,expires INTEGER NOT NULL);
+ CREATE TABLE IF NOT EXISTS privacy_activity(family TEXT PRIMARY KEY,last_seen INTEGER NOT NULL);
+ CREATE TABLE IF NOT EXISTS privacy_requests(id TEXT PRIMARY KEY,family TEXT NOT NULL,kind TEXT NOT NULL,created INTEGER NOT NULL,completed INTEGER);
+ CREATE INDEX IF NOT EXISTS privacy_requests_family ON privacy_requests(family,completed);
+ CREATE TABLE IF NOT EXISTS privacy_jobs(name TEXT PRIMARY KEY,last_run INTEGER NOT NULL);
  CREATE TABLE IF NOT EXISTS audit(id INTEGER PRIMARY KEY AUTOINCREMENT, actor TEXT NOT NULL, action TEXT NOT NULL, detail TEXT NOT NULL, created INTEGER NOT NULL);
  CREATE INDEX IF NOT EXISTS sessions_owner ON sessions(family,child,kind,expires);
  CREATE INDEX IF NOT EXISTS rewards_owner ON rewards(family,child,created);
@@ -30,6 +35,7 @@ export function database() {
  CREATE INDEX IF NOT EXISTS native_owner ON native_records(family,child,game,lesson,created);
  INSERT OR IGNORE INTO schema_version(version) VALUES(1);`);
   const now=Date.now();
+  db.prepare("INSERT OR IGNORE INTO privacy_activity SELECT id,? FROM families").run(now);
   db.prepare("DELETE FROM sessions WHERE expires<?").run(now);
   db.prepare("DELETE FROM limits WHERE reset<?").run(now);
   db.prepare("DELETE FROM challenges WHERE created<?").run(now-86400000);

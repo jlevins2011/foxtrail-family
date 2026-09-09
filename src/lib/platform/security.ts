@@ -1,3 +1,4 @@
+import { consentValid, activity } from "./privacy";
 import { cookies } from "next/headers";
 import { randomBytes } from "node:crypto";
 import { database } from "./db";
@@ -35,6 +36,7 @@ export async function session(kind: string, owner?: string) {
     .get(hash(token), kind) as
     | { family: string; child: string | null; expires: number }
     | undefined;
+  if(row && row.expires > Date.now() && kind === "child") { if(!consentValid(row.family))return null; activity(row.family); }
   return row && row.expires > Date.now() && (!owner || owner === row.family)
     ? row
     : null;
@@ -51,6 +53,7 @@ export async function requireParent() {
   if (!viewer) throw new Problem("Sign in to your family account.", 401);
   if (!(await session("parent", viewer.userId)))
     throw new Problem("Unlock parent space with your PIN.", 403);
+  activity(viewer.userId);
   return viewer;
 }
 export async function requireOwner() {

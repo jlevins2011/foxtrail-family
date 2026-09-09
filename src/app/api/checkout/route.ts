@@ -1,3 +1,4 @@
+import { requireConsent } from "@/lib/platform/privacy";
 import {readJson} from "@/lib/platform/http";
 import { NextResponse } from "next/server";
 import { getPlan } from "@/config/pricing";
@@ -16,6 +17,7 @@ export async function POST(req: Request) {
         "Payments are not connected in local testing. Your testing family can explore without a card.",
         503,
       );
+    requireConsent(viewer.userId,viewer.email);
     rate("checkout:" + viewer.userId, 10, 3600000);
     const b = await readJson(req,2048);
     const plan = getPlan(typeof b.plan === "string"?b.plan:"");

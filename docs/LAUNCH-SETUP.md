@@ -74,3 +74,7 @@ Agent keys use three scopes: aggregate report reads, official catalog reads, and
 - Decide whether to limit or retire the old standalone GitHub Pages games before charging for full access. They are separate deployments and were not changed by this release.
 
 Official setup references: [Clerk Next.js setup](https://clerk.com/docs/nextjs/getting-started/quickstart), [Stripe subscriptions](https://docs.stripe.com/billing/subscriptions/overview), [Stripe webhooks](https://docs.stripe.com/webhooks), [Render persistent disks](https://render.com/docs/disks).
+
+## Privacy launch gate
+
+Complete `docs/PRIVACY-OPERATIONS.md` and supply operator contacts, `QUESTBURROW_PRIVACY_KEY`, `QUESTBURROW_MAINTENANCE_SECRET` and the readiness flag. These are runtime environment settings. Configure the daily scheduled cleanup, verify backups expire and deletions survive a restore, and review provider assurances before setting readiness true. The parent permission review queue must be staffed by the operator. Texas is the planned business location; reassess if launching from Washington before moving.

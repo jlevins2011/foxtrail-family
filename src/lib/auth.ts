@@ -4,6 +4,7 @@ import { isClerkConfigured } from "@/lib/env";
 export type Viewer = {
   userId: string;
   email: string | null;
+  emailVerified: boolean;
   isDevPreview: boolean;
 };
 export const getViewer = cache(async (): Promise<Viewer | null> => {
@@ -17,6 +18,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
       return {
         userId: s.family,
         email: "Local testing family",
+        emailVerified: true,
         isDevPreview: true,
       };
   }
@@ -27,6 +29,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   return {
     userId,
     email: user?.primaryEmailAddress?.emailAddress ?? null,
+    emailVerified: user?.primaryEmailAddress?.verification?.status === "verified",
     isDevPreview: false,
   };
 });

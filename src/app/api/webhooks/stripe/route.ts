@@ -54,6 +54,7 @@ export async function POST(req: Request) {
     const sub = await stripe.subscriptions.retrieve(subId),
       owner = sub.metadata.familyId;
     if (!owner) return NextResponse.json({ received: true });
+    if(database().prepare("SELECT id FROM privacy_requests WHERE family=?").get(owner))return NextResponse.json({received:true});
     const plan = inferPlanFromSubscription(sub);
     if (!plan)
       return NextResponse.json(

@@ -33,3 +33,15 @@ services:
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
         sync: false
+      - key: QUESTBURROW_OPERATOR_NAME
+        sync: false
+      - key: QUESTBURROW_OPERATOR_ADDRESS
+        sync: false
+      - key: QUESTBURROW_OPERATOR_PHONE
+        sync: false
+      - key: QUESTBURROW_PRIVACY_KEY
+        sync: false
+      - key: QUESTBURROW_PRIVACY_OPERATIONS_READY
+        value: "false"
+      - key: QUESTBURROW_MAINTENANCE_SECRET
+        generateValue: true

@@ -54,3 +54,9 @@ This is an existing Next.js application with Node SQLite persistence, not a Clou
 The existing standalone GitHub Pages games remain available outside this website. Before commercial launch, decide whether to limit or retire those standalone deployments. The family hub gates its own full-game routes; it cannot gate the separate public URLs.
 
 The GitHub repository name and `FOXTRAIL_*` environment keys remain unchanged for compatibility with existing deployments and saved family data. The customer-facing website and installed app use Questburrow. No domain is registered or changed by this rebrand.
+
+## Parent permission and privacy operations
+
+Parent permission is now required before child profiles or gameplay, including local testing. In local tests use a fabricated sample form, then review it from Owner controls. Production requires a verified parent email, a signed consent form reviewed by the human operator, completed operator contact fields, encryption and retention configuration, and the operating checklist in `docs/PRIVACY-OPERATIONS.md`. No production consent bypass exists.
+
+The review queue, version checks, encrypted temporary forms, parent withdrawal, account deletion queue and authenticated retention endpoint are implemented. Provider cleanup, backup expiry/restore suppression, contract assurances and human review are operating duties; code does not complete them automatically. Question-bank sharing is paused in production during this initial private-data launch. This release is not a legal certification and remains closed to child use in production until launch requirements are configured.

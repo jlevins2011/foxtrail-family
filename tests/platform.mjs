@@ -88,12 +88,31 @@ try {
   const a = new Client();
   check("anonymous family data denied", () => {});
   assert.equal((await a.api("state")).status, 401);
+  assert.equal((await a.request("/api/privacy/owner")).status,401);
   assert.equal((await a.api("test-login", {})).status, 200);
   assert.equal((await a.api("children", { name: "Unauthorised" })).status, 403);
   count++;
   console.log("PASS parent PIN enforced before writes");
   assert.equal((await a.api("gate", { pin: "1234" })).status, 400);
   assert.equal((await a.api("gate", { pin: "654321" })).status, 200);
+  const privacy=(client,path,body)=>client.request("/api/privacy/"+path,body);
+  assert.equal((await a.api("children",{name:"Blocked"})).status,403);
+  const consentState=(await privacy(a,"status")).data;
+  assert.equal(consentState.status,"needed");
+  // A fixture is used solely to exercise manual review mechanics, not real parental verification.
+  const formImage=readFileSync("public/icons/apple-touch-icon.png").toString("base64");
+  assert.equal((await privacy(a,"submit",{version:"old",parent:true,image:formImage})).status,400);
+  assert.equal((await privacy(a,"submit",{version:consentState.version,parent:true,image:formImage})).status,200);
+  assert.equal((await a.api("children",{name:"Still blocked"})).status,403);
+  const evidence=(await privacy(a,"owner")).data.pending[0];
+  const review={family:"local-family",evidenceHash:evidence.evidence_hash,approve:true,checked:true,formEmail:"Local testing family",reference:consentState.reference,signedDate:new Date().toISOString().slice(0,10)};
+  assert.equal((await privacy(a,"owner/review",review)).status,403);
+  assert.equal((await a.request("/api/privacy/owner/evidence?family=local-family")).status,200);
+  assert.equal((await privacy(a,"owner/review",{...review,formEmail:"wrong@example.test"})).status,400);
+  assert.equal((await privacy(a,"owner/review",review)).status,200);
+  assert.equal((await a.request("/api/privacy/owner/evidence?family=local-family")).status,404);
+  assert.equal((await privacy(a,"owner/review",review)).status,409);
+  count++; console.log("PASS consent blocks collection until versioned, human-reviewed permission; evidence removed after review");
   const state = (await a.api("state")).data;
   assert.equal(
     state.banks.find((b) => b.id === "us-capitals").questions.length,
@@ -267,6 +286,8 @@ try {
   );
   count++;
   console.log("PASS durable game saves and sibling isolation");
+  assert.equal((await a.request("/api/privacy/owner")).status,403);
+  assert.equal((await a.request("/api/privacy/status")).status,403);
   // A separate authenticated testing family proves tenant ownership, sharing-copy behavior, and owner denial.
   const db = new DatabaseSync(path);
   const token = randomBytes(32).toString("hex"),
@@ -402,6 +423,42 @@ try {
   );
   count++;
   console.log("PASS child deletion removes saves and learning records");
+  // Rights controls must invalidate access and remove data, even from an existing child session.
+  await a.api("select",{childId:(await a.api("state")).data.family.children[0].id});
+  const oldChildCookie=a.cookies.get("ft_child");
+  await a.api("gate",{pin:"654321"});
+  assert.equal((await privacy(a,"revoke",{pin:"wrong"})).status,403);
+  assert.equal((await privacy(a,"revoke",{pin:"654321"})).status,200);
+  assert.equal((await a.api("state")).data.family.children.length,0);
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM game_saves WHERE family='local-family'").get().n,0);
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM banks WHERE family='local-family'").get().n,0);
+  a.cookies.set("ft_child",oldChildCookie);
+  assert.equal((await a.request("/api/games/sumtrail/index.html")).status,403);
+  assert.equal((await a.api("children",student)).status,403);
+  count++; console.log("PASS permission withdrawal removes child data, banks and old-session access");
+  assert.equal((await privacy(a,"delete-account",{pin:"654321",confirm:"DELETE"})).status,200);
+  assert.equal((await privacy(a,"status")).data.deletionPending,true);
+  assert.equal((await privacy(a,"submit",{version:consentState.version,parent:true,image:formImage})).status,403);
+  const deletion=(await privacy(a,"owner")).data.requests.find(r=>r.family==='local-family');
+  assert.equal((await privacy(a,"owner/complete",{id:deletion.id})).status,400);
+  assert.equal((await privacy(a,"owner/maintenance",{})).status,200);
+  assert.equal((await a.request("/api/privacy/maintenance",{})).status,401);
+  count++; console.log("PASS account deletion queue cannot be bypassed and retention endpoint requires authentication");
+  // Stale active families lose child access when retention runs.
+  db.prepare("UPDATE privacy_activity SET last_seen=? WHERE family='second-family'").run(Date.now()-366*86400000);
+  assert.equal((await privacy(a,"owner/maintenance",{})).status,200);
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM banks WHERE family='second-family'").get().n,0);
+  count++;console.log("PASS inactive-family retention deletes private banks");
+  const cipher=Buffer.from('not-a-real-encrypted-form').toString('base64');
+  db.prepare("INSERT INTO consents VALUES(?,?,?,?,?,NULL,NULL,?,?,?,?)").run('expired-form',consentState.version,'pending','hash',Date.now()-8*86400000,cipher,'image/png','proof',Date.now()-86400000);
+  assert.equal((await a.request("/api/privacy/owner/evidence?family=expired-form")).status,404);
+  await privacy(a,"owner/maintenance",{});
+  assert.equal(db.prepare("SELECT family FROM consents WHERE family='expired-form'").get(),undefined);
+  count++;console.log("PASS expired consent evidence cannot be opened and is removed by maintenance");
+  assert.equal((await privacy(a,"owner/complete",{id:deletion.id,providersDeleted:true,backupsScheduled:true})).status,200);
+  assert.equal(db.prepare("SELECT id FROM families WHERE id='local-family'").get(),undefined);
+  assert.equal(db.prepare("SELECT family FROM consents WHERE family='local-family'").get(),undefined);
+  count++;console.log("PASS completed provider deletion removes local parent account and consent records");
   db.close();
   console.log(`\n${count} platform checks passed.`);
 } catch (e) {

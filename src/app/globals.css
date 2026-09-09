@@ -550,3 +550,8 @@ button:focus-visible {
 @media(max-width:1000px) { .console-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .tile-world { min-height:125px; } .tile-caption { padding:16px; } }
 @media(max-width:550px) { .kid-app .workspace { padding:16px; } .kid-topbar { flex-wrap:wrap; margin-bottom:20px; } .kid-brand { font-size:17px; } .kid-utility { padding:8px 12px; } .console-grid { gap:14px; } .tile-caption h2 { font-size:19px; } .tile-caption p { display:none; } .tile-world>span { font-size:58px; } .tile-world { min-height:110px; } .credit-orb { padding:12px; font-size:24px; } .kid-app .is-playing { padding:0 8px; } .play-bar { gap:8px; flex-wrap:wrap; } .play-bar>span { font-size:12px; } .treasure-strip { padding:16px; gap:12px; } }
 @media(prefers-reduced-motion:reduce) { .console-tile { transition:none; } }
+.privacy-copy h3,.consent-print h3 {font-weight:800;margin:24px 0 8px;font-size:20px}
+.privacy-copy p,.consent-print p {margin:10px 0;line-height:1.7}
+.signature-section {border:2px solid #526975;padding:24px;margin-top:32px;break-inside:avoid}
+.kid-privacy {padding:12px 24px;text-align:center;color:#e2edf1;font-weight:700;text-decoration:underline}
+@media print { .site-nav,footer,.no-print {display:none!important} body {background:white!important;color:black!important} .consent-print {padding:0!important} .signature-section {break-before:page} }

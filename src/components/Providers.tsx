@@ -6,5 +6,5 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return children;
   }
 
-  return <ClerkProvider appearance={clerkAppearance}>{children}</ClerkProvider>;
+  return <ClerkProvider telemetry={{disabled:true}} appearance={clerkAppearance}>{children}</ClerkProvider>;
 }

@@ -1,3 +1,4 @@
+import { requireConsent, consentValid } from "@/lib/platform/privacy";
 import {readJson} from "@/lib/platform/http";
 import { NextResponse } from "next/server";
 import { randomUUID, randomBytes } from "node:crypto";
@@ -88,9 +89,11 @@ async function handle(
       await revoke("parent");
       return ok({ ok: true });
     }
+    if (database().prepare("SELECT id FROM privacy_requests WHERE family=?").get(f.id) && !["gate","lock","state","export","owner"].includes(path))throw new Problem("This account has a pending deletion request. Contact the operator.",403);
+    if ((path === "children" && method === "POST") || ["select","play","challenge","answer","playtime","native-session","save"].includes(path)) { if(!viewer.emailVerified || !viewer.email)throw new Problem("A parent must verify the account email before children can play.",403);requireConsent(f.id,viewer.email); }
     if (path === "library" && method === "GET")
       return ok({
-        children: f.children.map((c) => ({
+        children: (consentValid(f.id,viewer.email)?f.children:[]).map((c) => ({
           id: c.id,
           name: c.name,
           avatar: c.avatar,
@@ -404,6 +407,7 @@ async function handle(
     await requireParent();
     if (path === "state" && method === "GET")
       return ok({
+        consentRequired: !consentValid(f.id,viewer.email),
         family: safeFamily(f),
         banks: allBanks(f.id),
         entitlement: entitlement(f),
@@ -504,6 +508,7 @@ async function handle(
       return ok({ ok: true });
     }
     if (path === "share" && method === "POST") {
+      if(!LOCAL_TEST() && b.enabled!==false)throw new Problem("Question banks are private during the initial launch.",403);
       const bank = bankById(f.id, String(b.id));
       if (!bank || bank.family !== f.id)
         throw new Problem("Only your own banks can be shared.", 403);
@@ -515,6 +520,7 @@ async function handle(
       return ok({ code: bank.share ?? null });
     }
     if (path === "import" && method === "POST") {
+      if(!LOCAL_TEST())throw new Problem("Bank sharing is not available during the initial launch.",403);
       rate("share-import:" + f.id, 30, 3600000);
       const row = database()
         .prepare("SELECT data FROM banks WHERE share=?")

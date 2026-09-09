@@ -2,6 +2,7 @@
 import {useRouter} from "next/navigation";
 import { useEffect, useState, useCallback, type FormEvent } from "react";
 import Link from "next/link";
+import { PrivacyCenter, PrivacyReview } from "./PrivacyCenter";
 import { AgentTools } from "./AgentTools";
 import type { Child, Plan, Bank, Subject } from "@/lib/platform/model";
 import { games } from "@/config/games";
@@ -29,6 +30,7 @@ type Wallet = {
   treasures: { id: string; name: string; cost: number; description: string }[];
 };
 type Data = {
+  consentRequired: boolean;
   family: {
     children: SafeChild[];
     hasPin: boolean;
@@ -187,11 +189,13 @@ export function ParentSpace({ section = "profiles" }: { section?: string }) {
         <Link href="/dashboard/question-banks">Question banks</Link>
         <Link href="/dashboard/progress">Progress & rewards</Link>
         <Link href="/dashboard/membership">Membership & privacy</Link>
+        <Link href="/dashboard/privacy">Parent permission</Link>
         {data.isOwner && <Link href="/dashboard/owner">Owner controls</Link>}
       </nav>
       <Notice message={message} />
-      {section === "profiles" ? (
-        <Profiles data={data} act={act} busy={busy} />
+      {data.consentRequired && <p className="notice">Complete <Link href="/dashboard/privacy">Parent permission</Link> before creating child profiles or playing.</p>}
+      {section === "privacy" ? <PrivacyCenter/> : section === "profiles" ? (
+        data.consentRequired ? <PrivacyCenter/> : <Profiles data={data} act={act} busy={busy} />
       ) : section === "banks" ? (
         <Banks banks={data.banks} act={act} busy={busy} />
       ) : section === "progress" ? (
@@ -219,7 +223,7 @@ function PlanEditor({
   return (
     <>
       <label>
-        Course of study or syllabus notes
+        Course of study or syllabus notes (no personal or sensitive information)
         <textarea
           value={value.syllabus ?? ""}
           maxLength={2000}
@@ -1046,6 +1050,7 @@ function Membership({
       </section>
       <section className="panel">
         <h2>Your family’s data</h2>
+        <p><Link href="/dashboard/privacy">Withdraw permission or request complete account deletion</Link></p>
         <p>
           Download your profiles, question banks, learning records, and saved
           game data. To remove a child and their records, use Delete on their
@@ -1129,6 +1134,7 @@ function Owner() {
   return (
     <>
       <Notice message={msg} />
+      <PrivacyReview/>
       {d && (
         <>
           <section className="panel">
@@ -1287,7 +1293,7 @@ export function Library() {
           {!d.children.length ? (
             <div className="panel">
               <h2>Let’s meet your learners.</h2>
-              <p>Create a child profile in parent space to get started.</p>
+              <p>A grown-up can complete parent permission and set up your explorer.</p>
               <Link className="action" href="/dashboard">
                 Set up your family
               </Link>

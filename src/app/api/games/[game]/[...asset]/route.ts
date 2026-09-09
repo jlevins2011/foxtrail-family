@@ -1,3 +1,4 @@
+import { consentValid, launchGaps, localPrivacy } from "@/lib/platform/privacy";
 import { randomBytes } from "node:crypto";
 import { hash } from "@/lib/platform/model";
 import { readFile } from "node:fs/promises";
@@ -25,6 +26,7 @@ export async function GET(
   const { game, asset } = await params;
   const viewer = await getViewer();
   if (!viewer) return new Response("Sign in first.", { status: 401 });
+  if(!viewer.emailVerified || !viewer.email || !consentValid(viewer.userId,viewer.email) || (!localPrivacy() && launchGaps().length))return new Response("Parent permission is required.",{status:403});
   const f = family(viewer.userId),
     s = await session("child", f.id);
   if (!s) return new Response("Choose your profile.", { status: 403 });

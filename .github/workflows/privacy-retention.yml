@@ -1,0 +1,21 @@
+name: Privacy retention
+on:
+  schedule:
+    - cron: '23 9 * * *'
+  workflow_dispatch:
+permissions: {}
+jobs:
+  retention:
+    if: vars.QUESTBURROW_PUBLIC_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Run authenticated retention cleanup
+        env:
+          PUBLIC_URL: ${{ vars.QUESTBURROW_PUBLIC_URL }}
+          JOB_SECRET: ${{ secrets.QUESTBURROW_MAINTENANCE_SECRET }}
+        run: |
+          test -n "$JOB_SECRET"
+          curl --fail --silent --show-error --max-time 90 --request POST \
+            --header "Authorization: Bearer $JOB_SECRET" \
+            "${PUBLIC_URL%/}/api/privacy/maintenance"

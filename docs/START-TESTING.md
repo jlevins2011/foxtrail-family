@@ -1,7 +1,7 @@
 # Start testing
 
 1. Open the local website and choose **Parent space → Parent sign-in → Open testing family**.
-2. Create a parent PIN of 6–10 digits. Add a child, choose their grade, and give them a separate four-digit PIN.
+2. Create a parent PIN of 6–10 digits. Open Parent permission, print the form, use a fabricated signature for local testing, and upload a scan. In Owner controls → Privacy operations, open and review that form and transcribe its email/reference/date to approve the test workflow. Then add a child, choose their grade, and give them a separate four-digit PIN.
 3. In **Question banks**, create a small bank or upload `public/question-bank-template.csv`. Save it, then assign it in the child’s learning plan. You can put a different plan on one game.
 4. Go to **Play**, choose the child, and enter their PIN. Parent space should now ask for the parent PIN again.
 5. In Sumtrail, try **Start assigned trail**. Correct answers earn credits immediately. Other learning games use their compatible banks only.
@@ -42,3 +42,5 @@ On the hosted HTTPS website, open `/library` in iPad Safari, use Share → Add t
 Apple instructions: https://support.apple.com/guide/ipad/open-as-web-app-ipad8f1f7a29/ipados
 
 Check portrait and landscape on an actual iPad after hosting is connected. Physical-device installation has not been verified here.
+
+Local testing does not establish real parental consent. Do not upload government ID or child photos. Production bank sharing is paused; local sharing tests remain available.
