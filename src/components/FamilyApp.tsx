@@ -1274,7 +1274,7 @@ export function Library() {
   }, []);
   return (
     <div className="workspace kid-lobby">
-      <div className="kid-topbar"><span className="kid-brand">✦ Adventure camp</span><Link className="kid-utility" href="/dashboard">🔒 Grown-ups</Link></div>
+      <div className="kid-topbar"><span className="kid-brand">✦ Questburrow</span><Link className="kid-utility" href="/dashboard">🔒 Grown-ups</Link></div>
       <div className="lobby-mascot" aria-hidden="true">🦊</div>
       <p className="eyebrow">Your next adventure is waiting</p>
       <h1>Who’s playing today?</h1>

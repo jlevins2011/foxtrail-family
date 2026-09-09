@@ -39,7 +39,7 @@ export default async function GameOpenGraphImage({
             marginTop: 18,
           }}
         >
-          {game?.name ?? "Foxtrail game"}
+          {game?.name ?? "Questburrow game"}
         </div>
         <div style={{ fontSize: 30, marginTop: 24, color: theme.moss }}>
           {game?.subject ?? "Educational game"} · Free demo · 14-day family

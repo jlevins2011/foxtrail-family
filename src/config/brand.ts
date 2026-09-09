@@ -3,16 +3,16 @@
  * Colors are applied as CSS variables on <html> in the root layout.
  */
 export const brand = {
-  id: "foxtrail-family",
-  name: "Foxtrail Family",
-  shortName: "Foxtrail",
-  legalName: "Foxtrail Family",
-  tagline: "Camp games for curious kids. One family key for the trail.",
+  id: "questburrow",
+  name: "Questburrow",
+  shortName: "Questburrow",
+  legalName: "Questburrow",
+  tagline: "Learning adventures for curious kids.",
   pitch:
     "A quiet family hub for Sumtrail, Camp Compass, Keytrail, and Lumen Isles. Play the free demos anytime. A parent can start a 14-day full-family trial, then keep the library with one key. No ads. No chat. Parent email only.",
   description:
-    "Foxtrail Family is a shared home for Sumtrail, Camp Compass, Keytrail, and Lumen Isles. Demos are always free. A parent email unlocks a 14-day family trial, then $9.99/month or $99.90/year.",
-  seoTitle: "Foxtrail Family — Camp games for curious kids",
+    "Questburrow is a shared home for Sumtrail, Camp Compass, Keytrail, and Lumen Isles. Demos are always free. A parent email unlocks a 14-day family trial, then $9.99/month or $99.90/year.",
+  seoTitle: "Questburrow — Learning adventures for curious kids",
   mascots: {
     primary: {
       name: "Pip",

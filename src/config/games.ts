@@ -54,7 +54,7 @@ export const games: Game[] = [
       "Camp Compass is a US geography trail for families. Kids move through five camps, tap real states, match capitals, and collect story stones. The demo is always free from this hub. A parent 14-day trial unlocks the full family library.",
     seoTitle: "Camp Compass — US geography game for families",
     seoDescription:
-      "Play the free Camp Compass demo: five US camps, state maps, and capitals with Pip the lantern fox. Then start a 14-day Foxtrail Family trial.",
+      "Play the free Camp Compass demo: five US camps, state maps, and capitals with Pip the lantern fox. Then start a 14-day Questburrow trial.",
     playUrl: "https://jlevins2011.github.io/state-capitals/",
     repoUrl: "https://github.com/jlevins2011/state-capitals",
     accent: "moss",
@@ -75,7 +75,7 @@ export const games: Game[] = [
       "Keytrail teaches typing as a camp trail. Lessons start on the home row. Later paths add jumps, glow, and the gloom. The demo is always free from this hub. After a parent trial or subscription, Keytrail stays in the shared family library.",
     seoTitle: "Keytrail — typing trail for kids and families",
     seoDescription:
-      "Play the free Keytrail demo: home-row typing with Pip running toward camp. Unlock the full Foxtrail Family library after a 14-day trial.",
+      "Play the free Keytrail demo: home-row typing with Pip running toward camp. Unlock the full Questburrow library after a 14-day trial.",
     playUrl: "https://jlevins2011.github.io/typing-game/",
     repoUrl: "https://github.com/jlevins2011/typing-game",
     accent: "lantern",
@@ -96,7 +96,7 @@ export const games: Game[] = [
       "Lumen Isles is a 3D island adventure for learning-in-play. Kids explore, build, and shine with Lumen, Pip’s sibling. The demo is always free from this hub. The full family library — including later island unlocks when those land in the game — sits behind the 14-day trial and family key.",
     seoTitle: "Lumen Isles — 3D island adventure for families",
     seoDescription:
-      "Play the free Lumen Isles demo: explore, build, and shine on a 3D learning island. Start a 14-day Foxtrail Family trial for the full library.",
+      "Play the free Lumen Isles demo: explore, build, and shine on a 3D learning island. Start a 14-day Questburrow trial for the full library.",
     playUrl: "https://jlevins2011.github.io/HS-Game-v1/",
     repoUrl: "https://github.com/jlevins2011/HS-Game-v1",
     accent: "dusk",

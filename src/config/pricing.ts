@@ -31,8 +31,8 @@ export const plans: Plan[] = [
 ];
 
 export const familySku = {
-  productName: "Foxtrail Family",
-  statementDescriptor: "FOXTRAIL FAMILY",
+  productName: "Questburrow",
+  statementDescriptor: "QUESTBURROW",
   description:
     "14-day full-family trial, then one subscription unlocking Sumtrail, Camp Compass, Keytrail, and Lumen Isles.",
   trialDays: 14,

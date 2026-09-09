@@ -4,9 +4,9 @@ import { ButtonLink, Section } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Add Foxtrail to an iPad Home Screen",
+  title: "Add Questburrow to an iPad Home Screen",
   description:
-    "Add Foxtrail Family to an iPad Home Screen in Safari. Open straight to the explorer picker and games, with parent settings kept behind a PIN.",
+    "Add Questburrow to an iPad Home Screen in Safari. Open straight to the explorer picker and games, with parent settings kept behind a PIN.",
   path: "/install",
 });
 

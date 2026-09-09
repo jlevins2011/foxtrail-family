@@ -1,6 +1,6 @@
-# Foxtrail Family · testing release
+# Questburrow · testing release
 
-A shared home for **Sumtrail, Camp Compass, Keytrail, and Lumen Isles**. Foxtrail is a working name; rename it in `src/config/brand.ts` and set the public origin in the environment.
+A shared home for **Sumtrail, Camp Compass, Keytrail, and Lumen Isles**. The platform brand is Questburrow. Brand settings live in `src/config/brand.ts`; set the public origin to your verified hosted domain in the environment.
 
 ## Try it locally
 
@@ -52,3 +52,5 @@ Next.js with Clerk and Stripe, on a **single Node 24 server with a persistent SQ
 This is an existing Next.js application with Node SQLite persistence, not a Cloudflare Worker. Sites hosting cannot run this server build; no empty or static-only version was published as a substitute. Use the included Node deployment setup. No domain or host account has been connected yet.
 
 The existing standalone GitHub Pages games remain available outside this website. Before commercial launch, decide whether to limit or retire those standalone deployments. The family hub gates its own full-game routes; it cannot gate the separate public URLs.
+
+The GitHub repository name and `FOXTRAIL_*` environment keys remain unchanged for compatibility with existing deployments and saved family data. The customer-facing website and installed app use Questburrow. No domain is registered or changed by this rebrand.

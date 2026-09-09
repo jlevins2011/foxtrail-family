@@ -16,7 +16,7 @@ export function InstallGuide({
     },
     {
       title: "Tap Add to Home Screen",
-      body: "Keep Open as Web App turned on if shown, then tap Add. Your camp icon appears on the iPad home screen.",
+      body: "Keep Open as Web App turned on if shown, then tap Add. Name it Questburrow. Your camp icon appears on the iPad home screen.",
     },
     {
       title: "Open from the icon",
@@ -31,11 +31,11 @@ export function InstallGuide({
       </p>
       {asPageTitle ? (
         <h1 className="mt-2 font-display text-3xl text-pine">
-          Add Foxtrail to the family iPad
+          Add Questburrow to the family iPad
         </h1>
       ) : (
         <h2 className="mt-2 font-display text-3xl text-pine">
-          Add {compact ? "to Home Screen" : "Foxtrail to the family iPad"}
+          Add {compact ? "to Home Screen" : "Questburrow to the family iPad"}
         </h2>
       )}
       <p className="mt-3 max-w-2xl text-base leading-7 text-bark/80">
