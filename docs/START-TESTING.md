@@ -32,3 +32,13 @@ Native campaign completion is reported by the game client, with server-bound pla
 No automated browser gameplay or mobile-device playthrough has been performed for this release. The release includes API/security checks, bridge tests, native adapter checks, and production-build verification. Please test the playable flows on your children’s actual devices before inviting other families.
 
 The optional browser agent read tool has not been exercised in a WebMCP-capable browser. Server-side permission checks apply to it just as they do to the visible parent dashboard.
+
+## Child app and iPad
+
+The child routes `/library` and `/play` use a dedicated game console without the public site's header or footer. Choose an avatar and PIN, then a game. The persistent **Home** button waits for a successful game save before returning to the launcher; failed saves keep the game open. Switching explorers locks parent space again.
+
+On the hosted HTTPS website, open `/library` in iPad Safari, use Share → Add to Home Screen, and keep **Open as Web App** enabled if shown. Launch the new icon. A parent may need to sign in once inside the installed app; then children use their own PINs beneath that family account. Expired family sessions require the parent to sign in again. Internet access is required; this is not offline gameplay. The local `127.0.0.1` preview cannot be opened on a separate iPad.
+
+Apple instructions: https://support.apple.com/guide/ipad/open-as-web-app-ipad8f1f7a29/ipados
+
+Check portrait and landscape on an actual iPad after hosting is connected. Physical-device installation has not been verified here.

@@ -78,6 +78,13 @@ try {
     await sleep(250);
     if (i === 119) throw Error("Server did not start:\n" + output);
   }
+  const manifest = await (await fetch(origin + "/manifest.webmanifest")).json();
+  assert.equal(manifest.start_url, "/library");
+  assert.equal(manifest.display, "standalone");
+  const lobby = await (await fetch(origin + "/library")).text();
+  assert.ok(!lobby.includes('aria-label="Main navigation"'));
+  count++;
+  console.log("PASS installed app opens child picker without website navigation");
   const a = new Client();
   check("anonymous family data denied", () => {});
   assert.equal((await a.api("state")).status, 401);

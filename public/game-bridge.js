@@ -253,13 +253,13 @@
     mathFacts: maths.length && maths.every(Boolean) ? maths : [],
     practice: () =>
       parent.postMessage({ type: "family-practice" }, location.origin),
-    parent: () => {
-      void flush();
+    parent: async () => {
+      if (!(await flush())) return;
       window.top.location.assign("/dashboard");
     },
-    library: () => {
-      void flush();
-      window.top.location.assign("/library");
+    library: async () => {
+      if (!(await flush())) return;
+      window.top.location.assign("/play");
     },
   };
   if ("serviceWorker" in navigator) {

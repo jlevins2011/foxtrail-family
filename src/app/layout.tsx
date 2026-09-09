@@ -3,8 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { brand, theme, themeCssVars } from "@/config/brand";
 import { Providers } from "@/components/Providers";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
-import { SiteFooter } from "@/components/SiteFooter";
-import { SiteHeader } from "@/components/SiteHeader";
+import { AppShell } from "@/components/AppShell";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -58,9 +57,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className="h-full antialiased" style={themeCssVars}>
       <body className="flex min-h-full flex-col bg-cream text-bark">
         <Providers>
-          <SiteHeader />
-          <main className="flex-1">{children}</main>
-          <SiteFooter />
+          <AppShell>{children}</AppShell>
           <ServiceWorkerRegister />
         </Providers>
       </body>

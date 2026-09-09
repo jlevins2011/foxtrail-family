@@ -146,3 +146,19 @@ test("unsupported or incorrect math expressions use the assigned trail instead",
   );
   assert.equal(r.context.window.FamilyHost.mathFacts.length, 0);
 });
+test("native Home waits for a successful save and returns to game launcher", async () => {
+  const r=run(); const events=[];
+  r.storage.setItem("sumtrail.v1", "{}");
+  r.context.fetch=async()=>{events.push("saved"); return {ok:true};};
+  r.context.window.top.location.assign=path=>events.push(path);
+  await r.context.window.FamilyHost.library();
+  assert.deepEqual(events,["saved","/play"]);
+});
+test("failed save keeps a child inside the game instead of navigating away", async () => {
+  const r=run(); let navigated=false;
+  r.storage.setItem("sumtrail.v1", "{}");
+  r.context.fetch=async()=>({ok:false});
+  r.context.window.top.location.assign=()=>{navigated=true;};
+  await r.context.window.FamilyHost.library();
+  assert.equal(navigated,false);
+});

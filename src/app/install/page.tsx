@@ -6,7 +6,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "Add Foxtrail to an iPad Home Screen",
   description:
-    "Add Foxtrail Family to an iPad Home Screen in Safari. Free demos stay available; the full library needs a 14-day trial or family key.",
+    "Add Foxtrail Family to an iPad Home Screen in Safari. Open straight to the explorer picker and games, with parent settings kept behind a PIN.",
   path: "/install",
 });
 

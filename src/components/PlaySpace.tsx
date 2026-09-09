@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { games } from "@/config/games";
 import { api } from "./FamilyApp";
 type Context = {
@@ -13,6 +14,8 @@ type Context = {
   banks: { title: string }[];
 };
 export function PlaySpace({ game }: { game?: string }) {
+  const router = useRouter();
+  const [leaving, setLeaving] = useState(false);
   const [context, setContext] = useState<Context | null>(null),
     [error, setError] = useState(""),
     [mode, setMode] = useState<"choose" | "practice" | "adventure">("choose"),
@@ -79,6 +82,8 @@ export function PlaySpace({ game }: { game?: string }) {
     };
   }, [gid, mode, activeChildId]);
   const back = async () => {
+    if (leaving) return;
+    setLeaving(true);
     const frame = document.getElementById(
       "family-game",
     ) as HTMLIFrameElement | null;
@@ -87,74 +92,48 @@ export function PlaySpace({ game }: { game?: string }) {
         FamilyHost?: { flush: () => Promise<boolean> };
       }
     )?.FamilyHost;
-    if (host && !(await host.flush())) {
+    if (host && !(await host.flush().catch(() => false))) {
       setError(
         "Your progress has not saved yet. Please reconnect and try again.",
       );
+      setLeaving(false);
       return;
     }
-    setMode("choose");
-    setLease(false);
-    await refresh();
+    router.push("/play");
   };
   if (!context)
     return (
-      <div className="workspace">
-        <h1>Choose your adventure.</h1>
+      <div className="workspace kid-lobby">
+        <div className="lobby-mascot" aria-hidden="true">🦊</div>
+        <h1>Let’s open your camp.</h1>
         <p className="notice">{error || "Opening your family…"}</p>
         <Link className="action" href="/library">
           Choose your profile
         </Link>
       </div>
     );
-  if (!current)
-    return (
-      <div className="workspace">
-        <p className="eyebrow">
-          {context.child.avatar} Hello, {context.child.name}
-        </p>
-        <h1>Where will you go today?</h1>
-        <p style={{ marginBottom: 24 }}>
-          ✦ {context.wallet.credits} discovery credits
-        </p>
-        <div className="game-grid">
-          {games.map((g, i) => (
-            <Link
-              className={"trail-card trail-" + i}
-              key={g.id}
-              href={"/play/" + g.id}
-            >
-              <span className="game-number">{g.subject}</span>
-              <h3>{g.name}</h3>
-              <p>{g.blurb}</p>
-              <span className="trail-link">Let’s go ↗</span>
-            </Link>
-          ))}
-        </div>
-        <div className="actions">
-          <Link className="text-link" href="/library">
-            Switch learner
-          </Link>
-        </div>
-      </div>
-    );
+  if (!current) {
+    const badges: Record<string, string> = {sumtrail:"🧮", "camp-compass":"🧭", keytrail:"⌨️", "lumen-isles":"🏝️"};
+    const captions: Record<string, string> = {sumtrail:"Build it. Count it. Discover it.", "camp-compass":"A whole country to explore.", keytrail:"Ready, set, type!", "lumen-isles":"Your island. Your adventure."};
+    const nextTreasure = [10,30,60].find(n=>n>context.wallet.credits);
+    return <div className="workspace kid-home">
+      <div className="kid-topbar"><span className="kid-brand">✦ Adventure camp</span><div className="actions"><Link className="kid-utility" href="/library">Switch explorer</Link><Link className="kid-utility" href="/dashboard">🔒 Grown-ups</Link></div></div>
+      <div className="kid-welcome"><div><p className="eyebrow">{context.child.avatar} {context.child.name}’s camp</p><h1>Pick your adventure!</h1></div><span className="credit-orb">✦ {context.wallet.credits}<small>discoveries</small></span></div>
+      <div className="console-grid">{games.map((g,i)=><Link className={"console-tile console-"+i} key={g.id} href={"/play/"+g.id}><div className="tile-world" aria-hidden="true"><span>{badges[g.id]}</span><i>✦</i></div><div className="tile-caption"><h2>{g.name}</h2><p>{captions[g.id]}</p><span className="tile-play">Play ▶</span></div></Link>)}</div>
+      <section className="treasure-strip"><span aria-hidden="true">🏮</span><div><h2>Your island treasures</h2><p>{nextTreasure ? `${nextTreasure-context.wallet.credits} more discoveries to your next island light!` : "You unlocked all three special island lights!"}</p>{nextTreasure && <progress value={context.wallet.credits} max={nextTreasure} aria-label="Discoveries toward your next island light" />}</div><span className="treasure-count">{context.wallet.treasures.length} / 3</span></section>
+    </div>;
+  }
   return (
-    <div className="workspace">
+    <div className={"workspace kid-game " + (mode === "adventure" ? "is-playing" : "")}>
       <div className="play-bar">
-        <Link className="text-link" href="/play">
-          ← All games
-        </Link>
+        <button className="action home-button" disabled={leaving} onClick={() => void back()}>{leaving ? "Saving…" : "⌂ Home"}</button>
+        <strong>{current.name}</strong>
         <span>
           {context.child.avatar} {context.child.name} · ✦{" "}
           {context.wallet.credits}
         </span>
-        {mode !== "choose" && (
-          <button className="action secondary" onClick={() => void back()}>
-            Back to camp
-          </button>
-        )}
       </div>
-      <p role="status" className="muted">
+      <p role="status" className="muted save-status">
         {saveStatus}
       </p>
       {error && (
@@ -174,12 +153,12 @@ export function PlaySpace({ game }: { game?: string }) {
               <h2>
                 {gid === "lumen-isles"
                   ? "Your island is waiting."
-                  : "Your learning trail"}
+                  : "Your discovery trail"}
               </h2>
               <p>
                 {gid === "lumen-isles"
                   ? "Build a home, explore the islands, and bring your learning treasures along."
-                  : "Practice your assigned questions. Each correct answer earns a discovery credit toward special treasures in Lumen Isles."}
+                  : "Take a quick question quest and earn lights for your island."}
               </p>
               {gid !== "lumen-isles" && (
                 <p className="muted" style={{ marginTop: 12 }}>
@@ -200,7 +179,7 @@ export function PlaySpace({ game }: { game?: string }) {
               >
                 {gid === "lumen-isles"
                   ? "Explore Lumen Isles →"
-                  : "Start assigned trail →"}
+                  : "Play question quest ▶"}
               </button>
               {gid === "lumen-isles" && context.timedPlay && (
                 <p className="muted" style={{ marginTop: 12 }}>
@@ -212,7 +191,7 @@ export function PlaySpace({ game }: { game?: string }) {
               <h2>
                 {gid === "lumen-isles"
                   ? "Treasures from your trails"
-                  : "The original adventure"}
+                  : "Jump into the game"}
               </h2>
               {gid === "lumen-isles" ? (
                 <>
@@ -239,14 +218,10 @@ export function PlaySpace({ game }: { game?: string }) {
               ) : (
                 <>
                   <p>
-                    Explore the game’s built-in camps and workshops. Your family
-                    profile and saved adventure follow you here.
+                    Your camps, workshops, and saved adventures are waiting.
                   </p>
                   <p className="muted">
-                    Completed campaign lessons also earn discovery credits: up
-                    to three per lesson, once a day. Compatible custom questions
-                    also appear inside the game. Other question formats are
-                    available on your assigned trail.
+                    Finish lessons to earn discoveries for your island treasures.
                   </p>
                   <button
                     className="action secondary"
@@ -254,7 +229,7 @@ export function PlaySpace({ game }: { game?: string }) {
                     disabled={!context.entitlement.unlocked}
                     onClick={() => setMode("adventure")}
                   >
-                    Continue adventure →
+                    Play adventure ▶
                   </button>
                 </>
               )}

@@ -6,11 +6,12 @@ export default function manifest(): MetadataRoute.Manifest {
     name: brand.name,
     short_name: brand.shortName,
     description: brand.tagline,
-    start_url: "/",
+    id: "/",
+    start_url: "/library",
     scope: "/",
     display: "standalone",
     orientation: "any",
-    background_color: theme.cream,
+    background_color: "#102735",
     theme_color: theme.pine,
     icons: [
       {

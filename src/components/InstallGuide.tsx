@@ -7,8 +7,8 @@ export function InstallGuide({
 }) {
   const steps = [
     {
-      title: "Open this hub in Safari",
-      body: "On iPad, Add to Home Screen is most reliable in Safari — not a third-party browser.",
+      title: "Open your family’s game screen in Safari",
+      body: "On your iPad, sign in with a parent, then open Play to reach the explorer picker.",
     },
     {
       title: "Tap Share",
@@ -16,11 +16,11 @@ export function InstallGuide({
     },
     {
       title: "Tap Add to Home Screen",
-      body: "Name it Foxtrail (or your family name) and tap Add. The lantern-fox icon lands on the iPad home screen.",
+      body: "Keep Open as Web App turned on if shown, then tap Add. Your camp icon appears on the iPad home screen.",
     },
     {
       title: "Open from the icon",
-      body: "The hub opens as its own app. During the trial or after you subscribe, the library is one tap away.",
+      body: "Choose an explorer, enter their child PIN, and play. If the app asks, sign in with a parent once inside it. Parent settings still need your parent PIN.",
     },
   ];
 
@@ -39,9 +39,7 @@ export function InstallGuide({
         </h2>
       )}
       <p className="mt-3 max-w-2xl text-base leading-7 text-bark/80">
-        This site is a small PWA: it has a web app manifest and a light service
-        worker so Safari can offer Add to Home Screen. Kids get a camp icon.
-        Parents keep the key.
+        A camp icon opens straight to the children’s game space, without the usual website menus. Children stay under your family account. An internet connection is needed to sign in, load games, and save progress.
       </p>
       <ol className="mt-6 grid gap-4 sm:grid-cols-2">
         {steps.map((step, index) => (

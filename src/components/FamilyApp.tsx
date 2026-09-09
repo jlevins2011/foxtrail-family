@@ -1268,24 +1268,22 @@ export function Library() {
     [selected, setSelected] = useState(""),
     [message, setMessage] = useState("");
   useEffect(() => {
-    api("library")
+    api("lock", {}).then(() => api("library"))
       .then(setD)
       .catch((e) => setMessage(e.message));
   }, []);
   return (
-    <div className="workspace">
+    <div className="workspace kid-lobby">
+      <div className="kid-topbar"><span className="kid-brand">✦ Adventure camp</span><Link className="kid-utility" href="/dashboard">🔒 Grown-ups</Link></div>
+      <div className="lobby-mascot" aria-hidden="true">🦊</div>
       <p className="eyebrow">Your next adventure is waiting</p>
       <h1>Who’s playing today?</h1>
-      <Notice message={message} />
+      {d && <Notice message={message} />}
       {!d ? (
-        <Link className="action" href="/sign-in">
-          Sign in with a parent
-        </Link>
+        message ? <div className="panel"><h2>Ask a grown-up to open your camp.</h2><p>Your family account keeps everyone’s adventures together.</p><Link className="action" href="/sign-in">Grown-up sign-in</Link></div> : <p role="status">Opening camp…</p>
       ) : (
         <>
-          <p className="muted" style={{ marginBottom: 24 }}>
-            {d.entitlement.label}
-          </p>
+          <p className="lobby-hint">Tap your explorer to begin.</p>
           {!d.children.length ? (
             <div className="panel">
               <h2>Let’s meet your learners.</h2>
@@ -1295,9 +1293,9 @@ export function Library() {
               </Link>
             </div>
           ) : (
-            <div className="panel-grid">
+            <div className="explorer-grid">
               {d.children.map((c) => (
-                <section className="panel" key={c.id}>
+                <section className="panel explorer-card" key={c.id}>
                   <div className="child-row">
                     <span className="avatar">{c.avatar}</span>
                     <div>
@@ -1331,17 +1329,18 @@ export function Library() {
                           inputMode="numeric"
                           pattern="[0-9]{4}"
                           maxLength={4}
+                          required
                           autoFocus
                           autoComplete="off"
                         />
                       </label>
-                      <button className="action">Let’s play →</button>
+                      <button className="action">Let’s play ▶</button>
                     </form>
                   ) : (
                     <button
                       className="action"
                       style={{ marginTop: 24 }}
-                      onClick={() => setSelected(c.id)}
+                      onClick={() => { setMessage(""); setSelected(c.id); }}
                     >
                       That’s me →
                     </button>

@@ -492,3 +492,61 @@ button:focus-visible {
 .trail-progress .lit {
   color: #dc892f;
 }
+
+/* The child console fills the app window; public and parent pages retain their shell. */
+.kid-app { flex:1; min-height:100dvh; color:#f3f7ed; background:radial-gradient(ellipse at 85% 5%,#315a68 0,transparent 48%),linear-gradient(160deg,#163a49,#101f32); padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+.kid-app .workspace { max-width:1200px; padding:24px 32px 36px; margin:auto; }
+.kid-app h1,.kid-app h2,.kid-app h3 { color:inherit; }
+.kid-app h1 { font-family:var(--font-body),ui-rounded,system-ui,sans-serif; font-weight:850; letter-spacing:-.04em; font-size:clamp(30px,4.5vw,52px); }
+.kid-app .eyebrow { color:#b8dece; }
+.kid-app .muted { color:#c1d5da; }
+.kid-topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:32px; }
+.kid-topbar .actions { margin:0; gap:10px; }
+.kid-brand { font-weight:850; font-size:20px; color:#f8d47c; }
+.kid-utility { display:inline-flex; align-items:center; min-height:48px; padding:10px 16px; border:1px solid #63818e; border-radius:18px; color:#e0edf0; font-size:14px; font-weight:700; }
+.kid-welcome { display:flex; align-items:center; justify-content:space-between; gap:24px; margin-bottom:24px; }
+.credit-orb { display:block; background:#f7d479; color:#203540; border-radius:24px; padding:16px 24px; text-align:center; font-size:30px; font-weight:900; box-shadow:0 5px 0 #bb963d; }
+.credit-orb small { display:block; font-size:12px; letter-spacing:.04em; }
+.console-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:20px; }
+.console-tile { display:flex; flex-direction:column; overflow:hidden; border:2px solid #ffffff40; border-radius:28px; box-shadow:0 7px 0 #07182380; transition:transform .15s; background:#275060; }
+.console-tile:hover { transform:translateY(-4px); }
+.console-tile:active { transform:translateY(2px); }
+.tile-world { position:relative; display:grid; place-items:center; min-height:160px; overflow:hidden; background:radial-gradient(circle at 50% 45%,#ffeabc,#cc8750); }
+.tile-world:before,.tile-world:after { content:""; position:absolute; width:190px; height:95px; border-radius:50%; background:#ffffff24; bottom:-40px; left:-30px; transform:rotate(-20deg); }
+.tile-world:after { left:auto; right:-50px; bottom:-30px; background:#12384c28; }
+.tile-world>span { font-size:76px; z-index:1; filter:drop-shadow(0 8px 4px #13263530); }
+.tile-world i { position:absolute; top:18px; right:23px; font-style:normal; color:#fff8cd; font-size:28px; }
+.console-1 .tile-world { background:radial-gradient(circle,#d6eeac,#5b9e80); }
+.console-2 .tile-world { background:radial-gradient(circle,#c8e8fb,#668bb5); }
+.console-3 .tile-world { background:radial-gradient(circle,#b9f5e8,#3a929e); }
+.tile-caption { padding:20px; display:flex; flex:1; flex-direction:column; }
+.tile-caption h2 { font-size:23px; margin:0 0 8px; font-weight:850; }
+.tile-caption p { font-size:14px; line-height:1.5; color:#dce9e7; margin-bottom:22px; }
+.tile-play { margin-top:auto; display:block; text-align:center; padding:12px; border-radius:16px; background:#f8d77c; color:#20333c; font-weight:900; }
+.treasure-strip { display:flex; align-items:center; gap:20px; padding:22px 26px; border-radius:24px; background:#ffffff0d; border:1px solid #70929e; margin-top:30px; }
+.treasure-strip>span:first-child { font-size:44px; }
+.treasure-strip h2 { font-size:20px; margin:0 0 5px; }
+.treasure-strip p { font-size:14px; color:#cde1dc; }
+.treasure-strip progress { width:min(300px,100%); height:12px; accent-color:#f8d77c; }
+.treasure-count { margin-left:auto; font-size:24px; white-space:nowrap; font-weight:800; color:#f8d77c; }
+.kid-lobby { text-align:center; }
+.lobby-mascot { font-size:72px; margin:16px auto; }
+.lobby-hint { color:#cfdfdf; margin:12px 0 28px; }
+.explorer-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:22px; max-width:950px; margin:auto; }
+.kid-app .panel { background:#214656; border:1px solid #6b8994; color:#f3f7ed; border-radius:26px; }
+.kid-app .explorer-card { padding:26px; }
+.explorer-card .child-row { flex-direction:column; gap:14px; }
+.explorer-card .avatar { width:86px; height:86px; font-size:48px; background:#ffffff15; }
+.kid-app .action { min-height:48px; border-radius:16px; background:#f8d77c; color:#243441; font-weight:850; }
+.kid-app .action.secondary { background:#355969; color:#fff; border:1px solid #7f9aa4; }
+.kid-app input { color:#163747; background:#fff; }
+.kid-app .notice { color:#1a3643; }
+.kid-app .play-bar { position:sticky; top:env(safe-area-inset-top); z-index:5; background:#153441; padding:10px 0; margin:0; min-height:68px; }
+.kid-app .is-playing { max-width:none; display:flex; flex-direction:column; height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)); padding:0 14px; }
+.kid-app .game-frame { flex:1; min-height:0; height:auto; border-radius:16px 16px 0 0; }
+.kid-app .save-status { font-size:12px; min-height:18px; margin:0 0 4px; }
+.kid-app .home-button { min-width:108px; }
+.kid-app :focus-visible { outline:3px solid #fff0aa; outline-offset:5px; }
+@media(max-width:1000px) { .console-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .tile-world { min-height:125px; } .tile-caption { padding:16px; } }
+@media(max-width:550px) { .kid-app .workspace { padding:16px; } .kid-topbar { flex-wrap:wrap; margin-bottom:20px; } .kid-brand { font-size:17px; } .kid-utility { padding:8px 12px; } .console-grid { gap:14px; } .tile-caption h2 { font-size:19px; } .tile-caption p { display:none; } .tile-world>span { font-size:58px; } .tile-world { min-height:110px; } .credit-orb { padding:12px; font-size:24px; } .kid-app .is-playing { padding:0 8px; } .play-bar { gap:8px; flex-wrap:wrap; } .play-bar>span { font-size:12px; } .treasure-strip { padding:16px; gap:12px; } }
+@media(prefers-reduced-motion:reduce) { .console-tile { transition:none; } }
